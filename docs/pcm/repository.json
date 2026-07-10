@@ -1,6 +1,6 @@
 {
   "$schema": "https://go.kicad.org/pcm/schemas/v1",
-  "name": "Data Frontier PCM Repository",
+  "name": "EDA Footprint Generator PCM Repository",
   "maintainer": {
     "name": "Pedro Marco de Campos Vieira",
     "contact": {
@@ -9,8 +9,8 @@
   },
   "packages": {
     "url": "https://pedrowall-e.github.io/EDA-Footprint-Generator-Data-Frontier/pcm/packages.json",
-    "sha256": "b09c1be5403e2965f25549d6955576be55e53f0010f54a5a33e9503c29a8d680",
-    "update_time_utc": "2026-07-10 06:09:54",
-    "update_timestamp": 1783663794
+    "sha256": "aff8743b417b04c41a3282e9b44b0ccc5ac5fc47cbe2c750afdb5d1b6e6fe4fc",
+    "update_time_utc": "2026-07-10 14:51:47",
+    "update_timestamp": 1783695107
   }
 }

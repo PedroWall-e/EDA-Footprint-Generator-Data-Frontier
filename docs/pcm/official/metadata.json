@@ -1,8 +1,8 @@
 {
   "$schema": "https://go.kicad.org/pcm/schemas/v1",
-  "name": "Data Frontier Footprint Generator",
+  "name": "EDA Footprint Generator",
   "description": "Generate KiCad footprints, symbols and 3D models from YAML definitions.",
-  "description_full": "Data Frontier is a parametric EDA component generator. Describe a component once in a small YAML file and generate the KiCad footprint (.kicad_mod), schematic symbol (.kicad_sym) and 3D STEP model in one shot, validated against IPC-7351B before anything is written. Supports 7 pad patterns (axial/radial/dual PTH, dual/quad SMD, custom, BGA) and exports to KiCad, Eagle and Altium.",
+  "description_full": "EDA Footprint Generator is a parametric EDA component generator. Describe a component once in a small YAML file and generate the KiCad footprint (.kicad_mod), schematic symbol (.kicad_sym) and 3D STEP model in one shot, validated against IPC-7351B before anything is written. Supports 7 pad patterns (axial/radial/dual PTH, dual/quad SMD, custom, BGA) and exports to KiCad, Eagle and Altium.",
   "identifier": "com.datafrontier.footprint-generator",
   "type": "plugin",
   "author": {
@@ -31,13 +31,13 @@
   ],
   "versions": [
     {
-      "version": "3.0.0",
+      "version": "3.0.1",
       "status": "stable",
       "kicad_version": "6.0",
-      "download_url": "https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/releases/download/v3.0.0/DataFrontier-PCM-3.0.0.zip",
-      "download_sha256": "e4f671d48a6b0b50fcae8264d674b38fd6ad71a96509a5743037cdab2130b655",
-      "download_size": 8582,
-      "install_size": 19062
+      "download_url": "https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/releases/download/v3.0.1/DataFrontier-PCM-3.0.1.zip",
+      "download_sha256": "3ba9c57598df348b9e2eff3cc96ad35ad1421e5ad773d8140b5b116727570bc4",
+      "download_size": 8502,
+      "install_size": 18994
     }
   ]
 }
