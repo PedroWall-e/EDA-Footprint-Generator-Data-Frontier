@@ -10,6 +10,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Templates de issue (bug/feature) e de Pull Request em `.github/`
 - Regra de **Disciplina de Documentação** em `.agents/AGENTS.md`, `SKILL.md` e `CONTRIBUTING.md`
 - Empacotamento para o KiCad PCM: `metadata.json` no schema oficial, `scripts/build_pcm_package.py`, guia `kicad_plugin/README_PCM.md` e workflow `release-pcm.yml`
+- Ícone 64×64 do plugin para o PCM (`kicad_plugin/icon.png`) e gerador `scripts/gen_pcm_icon.py`
 - Seção de "good first issues" no `CONTRIBUTING.md`
 
 ### Corrigido
