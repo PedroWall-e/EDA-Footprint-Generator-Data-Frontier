@@ -278,7 +278,8 @@ def cmd_batch(args):
     import yaml
     pasta = args.pasta
     saida = args.output or os.path.join(PROJ_DIR, 'saida')
-    if not getattr(args, 'dry_run', False):
+    dry = getattr(args, 'dry_run', False)
+    if not dry:
         os.makedirs(saida, exist_ok=True)
 
     yamls = sorted([
@@ -302,31 +303,37 @@ def cmd_batch(args):
 
             # Footprint
             if not apenas or apenas == 'footprint':
-                kicad_path = os.path.join(saida, f"{nome}.kicad_mod")
-                _gerar_footprint_dispatch(dados, kicad_path)
+                if not dry:
+                    kicad_path = os.path.join(saida, f"{nome}.kicad_mod")
+                    _gerar_footprint_dispatch(dados, kicad_path)
                 arquivos.append('.kicad_mod')
 
             # Symbol
             if not apenas or apenas == 'symbol':
-                sym_path = os.path.join(saida, f"{nome}.kicad_sym")
-                from gerador_symbol import gerar_symbol
-                gerar_symbol(dados, sym_path)
+                if not dry:
+                    sym_path = os.path.join(saida, f"{nome}.kicad_sym")
+                    from gerador_symbol import gerar_symbol
+                    gerar_symbol(dados, sym_path)
                 arquivos.append('.kicad_sym')
 
             # 3D
             if not apenas or apenas == '3d':
-                try:
-                    step_path = os.path.join(saida, f"{nome}.step")
-                    from gerador_3d import gerar_3d_step
-                    if gerar_3d_step(dados, step_path, log_fn=lambda m: None):
-                        arquivos.append('.step')
-                except ImportError:
-                    pass
+                if dry:
+                    arquivos.append('.step')
+                else:
+                    try:
+                        step_path = os.path.join(saida, f"{nome}.step")
+                        from gerador_3d import gerar_3d_step
+                        if gerar_3d_step(dados, step_path, log_fn=lambda m: None):
+                            arquivos.append('.step')
+                    except ImportError:
+                        pass
 
             resultados.append({"nome": nome, "ok": True, "arquivos": arquivos})
             ok_count += 1
             if not args.json:
-                print(f"  ✅ {nome}: {', '.join(arquivos)}")
+                verbo = "would write" if dry else "gerado"
+                print(f"  ✅ {nome}: {', '.join(arquivos)}  ({verbo})")
 
         except Exception as e:
             resultados.append({"nome": yf, "ok": False, "erros": [str(e)]})
@@ -339,13 +346,17 @@ def cmd_batch(args):
             "total": len(yamls),
             "sucesso": ok_count,
             "falha": err_count,
+            "dry_run": dry,
             "resultados": resultados,
         }
         print(json.dumps(out, ensure_ascii=False, indent=2))
     else:
         print(f"\n{'='*50}")
         print(f"  Total: {len(yamls)}  ✅ {ok_count}  ❌ {err_count}")
-        print(f"  Saída: {saida}/")
+        if dry:
+            print("  DRY-RUN — nada foi escrito")
+        else:
+            print(f"  Saída: {saida}/")
         print(f"{'='*50}")
 
     return 0 if err_count == 0 else 1
@@ -391,7 +402,7 @@ def main():
     p_gerar.add_argument('--apenas', choices=['footprint', 'symbol', '3d'],
                          help='Gerar apenas um tipo de saída')
     p_gerar.add_argument('--dry-run', action='store_true',
-                        help='Validar e listar arquivos que seriam gerados, sem escrever')
+                         help='Validar e listar arquivos que seriam gerados, sem escrever')
     p_gerar.set_defaults(func=cmd_gerar)
 
     # validar
@@ -413,6 +424,8 @@ def main():
     p_batch.add_argument('-o', '--output', help='Diretório de saída')
     p_batch.add_argument('--apenas', choices=['footprint', 'symbol', '3d'],
                          help='Gerar apenas um tipo de saída')
+    p_batch.add_argument('--dry-run', action='store_true',
+                         help='Validar e listar o que seria gerado, sem escrever')
     p_batch.set_defaults(func=cmd_batch)
 
     # schema

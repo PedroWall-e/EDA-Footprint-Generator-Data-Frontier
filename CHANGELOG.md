@@ -11,6 +11,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Plugin PCM re-lançado como v3.0.1 com o novo nome
 
 ### Adicionado
+- Flag `--dry-run` nos comandos `gerar` e `batch` da CLI: valida (IPC) e lista os arquivos que seriam gerados, sem escrever nada (`gerar` por @tapheret2 no #7; estendido ao `batch`)
 - README em inglês (`README.md`) como página de produto; versão PT-BR movida para `README.pt-BR.md`
 - Templates de issue (bug/feature) e de Pull Request em `.github/`
 - Regra de **Disciplina de Documentação** em `.agents/AGENTS.md`, `SKILL.md` e `CONTRIBUTING.md`
