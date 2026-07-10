@@ -9,7 +9,7 @@ description = "Plataforma CAM-CAD para geração de footprints, símbolos e mode
 authors = [{name = "Data Frontier"}]
 license = {text = "GPL-3.0-or-later"}
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["kicad", "footprint", "pcb", "eda", "cad", "yaml"]
 classifiers = [
     "Development Status :: 4 - Beta",

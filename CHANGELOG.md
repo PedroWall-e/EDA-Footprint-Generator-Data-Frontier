@@ -14,6 +14,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Seção de "good first issues" no `CONTRIBUTING.md`
 
 ### Corrigido
+- CI: testes falhavam no Windows (`UnicodeEncodeError` ao imprimir emojis) — `tests/teste_v2.py` agora força UTF-8 no stdout/stderr; workflow define `PYTHONUTF8`/`PYTHONIOENCODING`
+- CI: testes falhavam no Python 3.9 (sintaxe `X | None` exige 3.10+) — matriz do CI passa a 3.10/3.11/3.12; `requires-python` ajustado para `>=3.10` (alinhado ao README)
 - `LICENSE` agora contém o texto completo e verbatim da GPL-3.0 (antes só o cabeçalho), permitindo a detecção correta da licença pelo GitHub e cumprindo a exigência da GPL de distribuir o texto integral
 - Nota explicativa "por que GPL" movida do `LICENSE` para o `NOTICE`
 - URL de Homepage corrigida no `pyproject.toml` (apontava para repositório inexistente); adicionadas URLs de Repository e Issues

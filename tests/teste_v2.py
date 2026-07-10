@@ -16,6 +16,15 @@ import traceback
 import tempfile
 import shutil
 
+# Forçar UTF-8 no stdout/stderr (evita UnicodeEncodeError com emojis ✅/❌ no
+# console do Windows, que por padrão usa cp1252). Ver AGENTS.md regra 6.
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 # Adicionar pasta do projeto ao path
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJ)

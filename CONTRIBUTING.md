@@ -25,7 +25,7 @@ Obrigado pelo interesse em contribuir! Este guia ajuda a manter a qualidade do p
 ## Padrões de Código
 
 ### Python
-- Python 3.9+
+- Python 3.10+ (o código usa sintaxe de união de tipos `X | None`, que exige 3.10+)
 - Docstrings em todas as funções públicas
 - Logging via `log = logging.getLogger(__name__)` (nunca `print()`)
 - `yaml.safe_load()` (nunca `yaml.load()`)
