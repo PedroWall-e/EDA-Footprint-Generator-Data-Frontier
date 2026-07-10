@@ -1,0 +1,16 @@
+{
+  "$schema": "https://go.kicad.org/pcm/schemas/v1",
+  "name": "Data Frontier PCM Repository",
+  "maintainer": {
+    "name": "Pedro Marco de Campos Vieira",
+    "contact": {
+      "web": "https://github.com/PedroWall-e"
+    }
+  },
+  "packages": {
+    "url": "https://pedrowall-e.github.io/EDA-Footprint-Generator-Data-Frontier/pcm/packages.json",
+    "sha256": "60603bc46656f6ca7f0914bfdf5a85acce2de9f6ca6763fdb420ee1e7a5dced7",
+    "update_time_utc": "2026-07-10 06:06:06",
+    "update_timestamp": 1783663566
+  }
+}
