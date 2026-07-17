@@ -4,7 +4,7 @@
 
 > Stop hand-drawing footprints. Describe a component once in **YAML** and generate the **KiCad footprint** (`.kicad_mod`), **schematic symbol** (`.kicad_sym`) and **3D model** (`.step`) in one shot — validated against **IPC-7351B** before anything is written.
 
-[![CI](https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/actions/workflows/ci.yml/badge.svg)](https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/actions/workflows/ci.yml)
+[![CI](https://github.com/PedroWall-e/EDA-Footprint-Generator/actions/workflows/ci.yml/badge.svg)](https://github.com/PedroWall-e/EDA-Footprint-Generator/actions/workflows/ci.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![KiCad 6+](https://img.shields.io/badge/KiCad-6%20%7C%207%20%7C%208-brightgreen.svg)](https://www.kicad.org/)
@@ -71,8 +71,8 @@ Chip (0402/0603/0805/1206), SOT-23/223, SSOP, SOIC, DIP, QFN, QFP, BGA, TO-92/22
 > **Requires:** Python 3.10+, and KiCad 6+ to open the generated files.
 
 ```bash
-git clone https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier.git
-cd EDA-Footprint-Generator-Data-Frontier
+git clone https://github.com/PedroWall-e/EDA-Footprint-Generator.git
+cd EDA-Footprint-Generator
 
 # Windows (recommended) — sets up the venv + local CadQuery/CQ-Editor deps
 .\scripts\setup_ambiente.ps1
@@ -140,7 +140,7 @@ If your exact part already exists in a library, grabbing it there is faster. EDA
 
 ## Contributing
 
-Issues and PRs are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) and the [good first issues](https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/labels/good%20first%20issue). Run the tests before opening a PR:
+Issues and PRs are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) and the [good first issues](https://github.com/PedroWall-e/EDA-Footprint-Generator/labels/good%20first%20issue). Run the tests before opening a PR:
 
 ```bash
 python tests/teste_v2.py    # expected: 107/107 OK

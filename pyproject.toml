@@ -31,6 +31,6 @@ dependencies = [
 dev = ["pytest", "pyinstaller"]
 
 [project.urls]
-Homepage = "https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier"
-Repository = "https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier"
-Issues = "https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/issues"
+Homepage = "https://github.com/PedroWall-e/EDA-Footprint-Generator"
+Repository = "https://github.com/PedroWall-e/EDA-Footprint-Generator"
+Issues = "https://github.com/PedroWall-e/EDA-Footprint-Generator/issues"

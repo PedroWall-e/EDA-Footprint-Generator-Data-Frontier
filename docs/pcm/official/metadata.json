@@ -8,7 +8,7 @@
   "author": {
     "name": "Data Frontier",
     "contact": {
-      "web": "https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier"
+      "web": "https://github.com/PedroWall-e/EDA-Footprint-Generator"
     }
   },
   "maintainer": {
@@ -19,7 +19,7 @@
   },
   "license": "GPL-3.0-or-later",
   "resources": {
-    "homepage": "https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier"
+    "homepage": "https://github.com/PedroWall-e/EDA-Footprint-Generator"
   },
   "tags": [
     "footprint",
@@ -34,7 +34,7 @@
       "version": "3.0.1",
       "status": "stable",
       "kicad_version": "6.0",
-      "download_url": "https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/releases/download/v3.0.1/DataFrontier-PCM-3.0.1.zip",
+      "download_url": "https://github.com/PedroWall-e/EDA-Footprint-Generator/releases/download/v3.0.1/DataFrontier-PCM-3.0.1.zip",
       "download_sha256": "3ba9c57598df348b9e2eff3cc96ad35ad1421e5ad773d8140b5b116727570bc4",
       "download_size": 8502,
       "install_size": 18994

@@ -11,7 +11,7 @@
 #   python scripts/build_pcm_repo.py \
 #     --zip <caminho-do-DataFrontier-PCM-X.Y.Z.zip-baixado-do-release> \
 #     --download-url https://github.com/.../releases/download/vX.Y.Z/DataFrontier-PCM-X.Y.Z.zip \
-#     --pages-base https://pedrowall-e.github.io/EDA-Footprint-Generator-Data-Frontier/pcm
+#     --pages-base https://pedrowall-e.github.io/EDA-Footprint-Generator/pcm
 # =============================================================================
 
 import argparse

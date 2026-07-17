@@ -86,7 +86,7 @@ Quer começar? Estes são pontos de entrada de baixo risco e alto valor:
 5. **Melhorar uma mensagem de erro** de validação IPC para incluir o valor esperado vs. obtido.
 6. **Adicionar um `--dry-run`** ao `cli.py gerar` que valida e mostra o que seria gerado sem escrever arquivos.
 
-Veja a lista completa e etiquetada em [good first issues](https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/labels/good%20first%20issue).
+Veja a lista completa e etiquetada em [good first issues](https://github.com/PedroWall-e/EDA-Footprint-Generator/labels/good%20first%20issue).
 
 ## Testes
 

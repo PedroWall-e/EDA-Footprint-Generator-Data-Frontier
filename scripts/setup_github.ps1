@@ -11,7 +11,7 @@
 # =============================================================================
 
 $ErrorActionPreference = 'Stop'
-$REPO = 'PedroWall-e/EDA-Footprint-Generator-Data-Frontier'
+$REPO = 'PedroWall-e/EDA-Footprint-Generator'
 
 if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
     Write-Error "GitHub CLI (gh) nao encontrado. Instale com: winget install GitHub.cli ; depois: gh auth login"
@@ -21,7 +21,7 @@ if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
 Write-Host "==> Definindo descricao e topics do repositorio..." -ForegroundColor Cyan
 gh repo edit $REPO `
   --description "Parametric EDA component generator: YAML -> KiCad footprint + symbol + 3D STEP, IPC-7351B validated. Exports to KiCad, Eagle, Altium." `
-  --homepage "https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier" `
+  --homepage "https://github.com/PedroWall-e/EDA-Footprint-Generator" `
   --add-topic kicad `
   --add-topic pcb `
   --add-topic footprint `

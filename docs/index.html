@@ -98,13 +98,13 @@
     <h1>EDA Footprint Generator</h1>
     <p class="tag">Stop hand-drawing footprints. Describe a component once in <strong>YAML</strong> and generate the KiCad footprint, schematic symbol and 3D STEP model — validated against <strong>IPC-7351B</strong> before anything is written.</p>
     <div class="badges">
-      <img src="https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/actions/workflows/ci.yml/badge.svg" alt="CI">
+      <img src="https://github.com/PedroWall-e/EDA-Footprint-Generator/actions/workflows/ci.yml/badge.svg" alt="CI">
       <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License GPLv3">
       <img src="https://img.shields.io/badge/KiCad-6%20%7C%207%20%7C%208-brightgreen.svg" alt="KiCad 6/7/8">
     </div>
     <div class="cta">
       <a class="btn btn-primary" href="#install">⬇ Install in KiCad</a>
-      <a class="btn btn-secondary" href="https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier">View on GitHub</a>
+      <a class="btn btn-secondary" href="https://github.com/PedroWall-e/EDA-Footprint-Generator">View on GitHub</a>
     </div>
   </div>
 </header>
@@ -131,7 +131,7 @@
     <div class="install">
       <strong>Repository URL</strong>
       <div class="urlrow">
-        <input id="pcmurl" readonly value="https://pedrowall-e.github.io/EDA-Footprint-Generator-Data-Frontier/pcm/repository.json">
+        <input id="pcmurl" readonly value="https://pedrowall-e.github.io/EDA-Footprint-Generator/pcm/repository.json">
         <button class="copybtn" onclick="copyUrl()" id="copybtn">Copy</button>
       </div>
       <ol>
@@ -143,8 +143,8 @@
 
     <h3 style="margin-top:32px">…or use the CLI</h3>
     <pre><code><span class="cm"># clone &amp; set up (Windows)</span>
-git clone https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier.git
-cd EDA-Footprint-Generator-Data-Frontier
+git clone https://github.com/PedroWall-e/EDA-Footprint-Generator.git
+cd EDA-Footprint-Generator
 .\scripts\setup_ambiente.ps1
 
 <span class="cm"># generate footprint + symbol + 3D from a YAML</span>
@@ -175,10 +175,10 @@ python cli.py gerar modulos_config/NE555_DIP8.yaml -o saida/</code></pre>
 
 <footer>
   <div class="wrap">
-    <a href="https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier">GitHub</a> ·
-    <a href="https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/releases">Releases</a> ·
-    <a href="https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/blob/main/README.md">Docs</a> ·
-    <a href="https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/blob/main/LICENSE">License (GPL-3.0)</a>
+    <a href="https://github.com/PedroWall-e/EDA-Footprint-Generator">GitHub</a> ·
+    <a href="https://github.com/PedroWall-e/EDA-Footprint-Generator/releases">Releases</a> ·
+    <a href="https://github.com/PedroWall-e/EDA-Footprint-Generator/blob/main/README.md">Docs</a> ·
+    <a href="https://github.com/PedroWall-e/EDA-Footprint-Generator/blob/main/LICENSE">License (GPL-3.0)</a>
     <p class="note">KiCad, Eagle, Altium and Fusion 360 are trademarks of their respective owners. This project is not affiliated with or endorsed by any of them.</p>
   </div>
 </footer>

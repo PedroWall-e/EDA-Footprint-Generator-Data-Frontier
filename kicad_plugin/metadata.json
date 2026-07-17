@@ -8,7 +8,7 @@
   "author": {
     "name": "Data Frontier",
     "contact": {
-      "web": "https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier"
+      "web": "https://github.com/PedroWall-e/EDA-Footprint-Generator"
     }
   },
   "maintainer": {
@@ -19,7 +19,7 @@
   },
   "license": "GPL-3.0-or-later",
   "resources": {
-    "homepage": "https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier"
+    "homepage": "https://github.com/PedroWall-e/EDA-Footprint-Generator"
   },
   "tags": [
     "footprint",

@@ -8,9 +8,9 @@
     }
   },
   "packages": {
-    "url": "https://pedrowall-e.github.io/EDA-Footprint-Generator-Data-Frontier/pcm/packages.json",
-    "sha256": "aff8743b417b04c41a3282e9b44b0ccc5ac5fc47cbe2c750afdb5d1b6e6fe4fc",
-    "update_time_utc": "2026-07-10 14:51:47",
-    "update_timestamp": 1783695107
+    "url": "https://pedrowall-e.github.io/EDA-Footprint-Generator/pcm/packages.json",
+    "sha256": "73e037160c87823fb3db6f32e127c39e7bf1e38c2fa4611e207e827d6e03052b",
+    "update_time_utc": "2026-07-17 05:26:06",
+    "update_timestamp": 1784265966
   }
 }

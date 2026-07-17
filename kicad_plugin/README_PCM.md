@@ -11,7 +11,7 @@ The PCM is the highest-leverage distribution channel: it puts this plugin **insi
 
 ```bash
 python scripts/build_pcm_package.py \
-  --download-url https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/releases/download/v2.0.0/DataFrontier-PCM-2.0.0.zip
+  --download-url https://github.com/PedroWall-e/EDA-Footprint-Generator/releases/download/v2.0.0/DataFrontier-PCM-2.0.0.zip
 ```
 
 This produces `build/pcm/DataFrontier-PCM-<version>.zip` with the PCM layout:
@@ -31,7 +31,7 @@ resources/icon.png
 Already set up. The index is served via GitHub Pages from `docs/pcm/`:
 
 - **Repository URL (share this):**
-  `https://pedrowall-e.github.io/EDA-Footprint-Generator-Data-Frontier/pcm/repository.json`
+  `https://pedrowall-e.github.io/EDA-Footprint-Generator/pcm/repository.json`
 
 Users install it in **KiCad → Plugin and Content Manager → Manage… → + (add repository)**, paste the URL, then find "EDA Footprint Generator" in the plugin list and click Install.
 
@@ -57,8 +57,8 @@ Per the [documentation-discipline rule](../.agents/AGENTS.md):
    gh release download vX.Y.Z --dir build/pcm/_hosted --clobber
    python scripts/build_pcm_repo.py \
      --zip build/pcm/_hosted/DataFrontier-PCM-X.Y.Z.zip \
-     --download-url https://github.com/PedroWall-e/EDA-Footprint-Generator-Data-Frontier/releases/download/vX.Y.Z/DataFrontier-PCM-X.Y.Z.zip \
-     --pages-base https://pedrowall-e.github.io/EDA-Footprint-Generator-Data-Frontier/pcm
+     --download-url https://github.com/PedroWall-e/EDA-Footprint-Generator/releases/download/vX.Y.Z/DataFrontier-PCM-X.Y.Z.zip \
+     --pages-base https://pedrowall-e.github.io/EDA-Footprint-Generator/pcm
    ```
 4. Commit `docs/pcm/*` and push. Also refresh `docs/pcm/official/metadata.json` if submitting to the official repo.
 

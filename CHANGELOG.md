@@ -27,6 +27,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 - Seção de "good first issues" no `CONTRIBUTING.md`
 
 ### Corrigido
+- **Repositório PCM voltou a funcionar após o rename do repo** — o GitHub redireciona URLs de repositório renomeado, mas **o GitHub Pages não**: a URL antiga passou a dar 404. Como o `repository.json` apontava para o Pages antigo, o KiCad não conseguia baixar o `packages.json` e o repositório PCM ficava inutilizável. Índice regerado com as URLs novas e todas as 31 referências ao slug antigo atualizadas (README, landing page, metadata, docs, scripts). Nova URL: `https://pedrowall-e.github.io/EDA-Footprint-Generator/pcm/repository.json`
 - **`pinos.overrides` em lista voltou a funcionar** — o motor v2 assumia que `overrides` era sempre um dict e estourava `AttributeError: 'list' object has no attribute 'get'` na forma em lista (`- numeros: [...]`), que o `schemas/component.schema.json` declara como válida (`oneOf`). Regressão da reescrita do v1 → v2: o v1 suportava a forma lista via `geometria_pads._construir_override_map`. Afetava `quad_smd`/castellated — os presets `RM200-v2` e `ModuloLTE_4Lados` não geravam. A normalização das duas formas agora vive num lugar só (`footprint_helpers.build_override_map`). Batch dos 40 presets: 40/40.
 - `add_3d_model`: não estoura mais quando o YAML tem `kicad:` presente porém vazio (vira `None`, não `{}`)
 - Documentadas as duas formas de `pinos.overrides` no `MANUAL_YAML_REFERENCIA.yaml` (a forma lista não estava documentada)
