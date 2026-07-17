@@ -134,7 +134,8 @@ Teste Gerador de footprint/
 │
 ├── core/                      # ⚙️  Motores de geração
 │   ├── runner_stub.py             # 🔌 Loader CQ-Editor — ponte para o motor 3D
-│   ├── gerador_footprint.py       # Gera .kicad_mod (todos os 10 tipos)
+│   ├── gerador_footprint_v2.py    # Gera .kicad_mod (7 padrões + shim tipo→padrao)
+│   ├── footprint_helpers.py       # Helpers compartilhados (pads, silk, courtyard)
 │   ├── gerador_symbol.py          # Gera .kicad_sym (símbolo esquemático)
 │   ├── gerador_universal.py       # Orquestrador: YAML → footprint + sym + 3D
 │   ├── geometria_pads.py          # Cálculo de geometria dos pads
@@ -207,7 +208,7 @@ graph TD
 
     subgraph Core["core/  —  Motores"]
         UNIV["gerador_universal"]
-        FP["gerador_footprint"]
+        FP["gerador_footprint_v2"]
         SYM["gerador_symbol"]
         GEO["geometria_pads"]
         EXP["exportar_biblioteca"]

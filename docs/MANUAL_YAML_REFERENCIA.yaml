@@ -504,6 +504,20 @@ pin_types:
 #   #     largura: 3.0
 #   #     altura: 1.4
 #   # Campos largura/altura ausentes caem no default do padrão.
+#   #
+#   # ONDE FUNCIONA (desde a correção — antes só o quad_smd honrava, os demais
+#   # ignoravam em silêncio):
+#   #   axial_pth, radial_pth, dual_pth  → largura/altura viram o TAMANHO do pad.
+#   #       Um pad PTH redondo é só o caso largura == altura; com valores
+#   #       diferentes o pad vira OVAL (o KiCad exige isso). O anel é validado
+#   #       contra o menor lado.
+#   #   dual_smd, quad_smd               → tamanho do pad.
+#   #       No dual_smd, `pinos_absolutos[N].pad` (mais específico) tem
+#   #       precedência sobre overrides.
+#   #   bga                              → endereça a BOLA pelo nome, não por
+#   #       índice. Use a forma dict: overrides: {"A1": {largura: .., altura: ..}}
+#   #   custom                           → NÃO usa overrides: cada pad já declara
+#   #       largura/altura na própria lista `pads:`.
 #   thermal_pad:                 # Opcional: pad térmico central (QFN)
 #     largura: 2.5
 #     altura: 2.5

@@ -92,14 +92,11 @@ def _gerar_componente(dados: dict, saida_dir: str, apenas: str | None = None):
     if not apenas or apenas == 'footprint':
         try:
             kicad_path = os.path.join(saida_dir, f"{nome}.kicad_mod")
-            padrao = dados.get('padrao', '')
-            tipo = dados.get('tipo', '')
-            if padrao:
-                from gerador_footprint_v2 import gerar_footprint_universal
-                gerar_footprint_universal(dados, kicad_path)
-            elif tipo:
-                from gerador_footprint import gerar_footprint
-                gerar_footprint(dados, kicad_path)
+            # Sempre v2 — igual à CLI. O shim _TIPO_PARA_PADRAO converte
+            # tipo: (v1) para padrao: (v2) automaticamente, então a API e a
+            # CLI produzem exatamente a mesma saída para o mesmo YAML.
+            from gerador_footprint_v2 import gerar_footprint_universal
+            gerar_footprint_universal(dados, kicad_path)
             with open(kicad_path, 'rb') as f:
                 arquivos['kicad_mod'] = base64.b64encode(f.read()).decode()
         except Exception as e:

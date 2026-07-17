@@ -255,10 +255,11 @@ def _gerar_axial_pth(dados, caminho_saida):
                      style='dot', size=0.5, line_width=larg_silk)
 
     # --- Pads THT: pino 1 quadrado, pino 2 circular ---
+    ov = build_override_map(dados, pad_diam, pad_diam)
     add_pth_pad(footprint, 1, x_pin1, 0, pad_diam, furo_diam,
-                shape=Pad.SHAPE_RECT)
+                shape=Pad.SHAPE_RECT, size=ov.get('1'))
     add_pth_pad(footprint, 2, x_pin2, 0, pad_diam, furo_diam,
-                shape=Pad.SHAPE_CIRCLE)
+                shape=Pad.SHAPE_CIRCLE, size=ov.get('2'))
 
     # --- Modelo 3D ---
     add_3d_model(footprint, modelo_3d, dados=dados, nome_padrao=nome)
@@ -351,10 +352,12 @@ def _gerar_radial_pth(dados, caminho_saida):
     draw_courtyard_raw(footprint, cy_x0, cy_y0, cy_x1, cy_y1)
 
     # --- Pads THT: pino 1 quadrado, demais circulares ---
+    ov = build_override_map(dados, pad_diam, pad_diam)
     for i, xp in enumerate(x_pins):
         num = i + 1
         shp = Pad.SHAPE_RECT if num == 1 else Pad.SHAPE_CIRCLE
-        add_pth_pad(footprint, num, xp, 0, pad_diam, furo_diam, shape=shp)
+        add_pth_pad(footprint, num, xp, 0, pad_diam, furo_diam, shape=shp,
+                    size=ov.get(str(num)))
 
     # --- Modelo 3D ---
     add_3d_model(footprint, modelo_3d, dados=dados, nome_padrao=nome)
@@ -452,19 +455,22 @@ def _gerar_dual_pth(dados, caminho_saida):
     draw_courtyard_raw(footprint, cy_x0, cy_y0, cy_x1, cy_y1)
 
     # --- Pads THT ---
+    ov = build_override_map(dados, pad_diam, pad_diam)
+
     # Lado esquerdo: pinos 1..meio (top → bottom)
     for i in range(meio):
         num = i + 1
         py  = y_inicio + i * pitch
         shp = Pad.SHAPE_RECT if num == 1 else Pad.SHAPE_CIRCLE
-        add_pth_pad(footprint, num, x_esq, py, pad_diam, furo_diam, shape=shp)
+        add_pth_pad(footprint, num, x_esq, py, pad_diam, furo_diam, shape=shp,
+                    size=ov.get(str(num)))
 
     # Lado direito: pinos meio+1..total (bottom → top)
     for i in range(meio):
         num = meio + 1 + i
         py  = y_inicio + (meio - 1 - i) * pitch
         add_pth_pad(footprint, num, x_dir, py, pad_diam, furo_diam,
-                    shape=Pad.SHAPE_CIRCLE)
+                    shape=Pad.SHAPE_CIRCLE, size=ov.get(str(num)))
 
     # --- Modelo 3D ---
     add_3d_model(footprint, modelo_3d, dados=dados, nome_padrao=nome)
@@ -546,14 +552,21 @@ def _gerar_dual_smd(dados, caminho_saida):
     # --- Overrides por pino (pinos_absolutos) ---
     pinos_abs = dados.get('pinos_absolutos', {})
 
+    override_map = build_override_map(dados, pad_w, pad_h)
+
     def _pad_size(num):
-        """Retorna (w, h) para o pad num, considerando pinos_absolutos."""
+        """Retorna (w, h) para o pad num.
+
+        Precedência: `pinos_absolutos[N].pad` (mecanismo nativo deste padrão,
+        mais específico) vence `pinos.overrides` (mecanismo geral), que por sua
+        vez vence o tamanho padrão.
+        """
         ov = pinos_abs.get(num, pinos_abs.get(str(num), None))
         if ov and 'pad' in ov:
             ow = float(ov['pad'].get('largura', pad_w))
             oh = float(ov['pad'].get('altura', pad_h))
             return ow, oh
-        return pad_w, pad_h
+        return override_map.get(str(num), (pad_w, pad_h))
 
     # --- Posições dos pads ---
     # Lado esquerdo: n_esq pads, centralizados verticalmente, espaçados por pitch
@@ -770,7 +783,7 @@ def _gerar_quad_smd(dados, caminho_saida):
 
     def _pad_size(num):
         """Retorna (w, h) para o pad num, considerando overrides."""
-        return override_map.get(int(num), (pad_w_def, pad_h_def))
+        return override_map.get(str(num), (pad_w_def, pad_h_def))
 
     # Esquerdo: cima → baixo (pads orientados horizontalmente)
     if n_esq > 0:
@@ -1128,6 +1141,8 @@ def _gerar_bga(dados, caminho_saida):
                      style='dot', size=0.6, line_width=larg_silk)
 
     # --- Pads SMD circulares ---
+    # Overrides são endereçados pelo nome da bola ("A1"), não por índice.
+    override_map = build_override_map(dados, pad_diam, pad_diam)
     n_pads = 0
     for row in range(linhas):
         row_lbl = _row_label(row)
@@ -1139,9 +1154,9 @@ def _gerar_bga(dados, caminho_saida):
             px = grid_x0 + col * pitch
             py = grid_y0 + row * pitch
 
-            add_smd_pad(footprint, pin_name, px, py,
-                        pad_diam, pad_diam,
-                        shape=Pad.SHAPE_CIRCLE)
+            w, h = override_map.get(pin_name, (pad_diam, pad_diam))
+            add_smd_pad(footprint, pin_name, px, py, w, h,
+                        shape=Pad.SHAPE_CIRCLE if w == h else Pad.SHAPE_OVAL)
             n_pads += 1
 
     # --- Modelo 3D ---

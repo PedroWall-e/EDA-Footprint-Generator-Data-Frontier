@@ -3,7 +3,7 @@
 # FONTE ÚNICA DE VERDADE para geometria de pads (posição + tamanho).
 #
 # Usada por:
-#   - gerador_footprint.py  (footprint 2D .kicad_mod)
+#   - gerador_3d.py         (modelo 3D .step)
 #   - gerador_universal.py  (modelo 3D CadQuery + STEP)
 #   - gerador_symbol.py     (símbolo esquemático .kicad_sym — só numeração/lado)
 #
@@ -27,7 +27,7 @@ class PadInfo:
 
 
 # =============================================================================
-# Funções auxiliares (antes eram duplicadas em gerador_footprint e universal)
+# Funções auxiliares (antes duplicadas entre os motores)
 # =============================================================================
 
 def _posicoes_centradas(n: int, pitch: float) -> list:

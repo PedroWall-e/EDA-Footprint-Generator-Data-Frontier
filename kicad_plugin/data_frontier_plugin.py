@@ -7,7 +7,7 @@ no PCB atual.
 
 Requisitos:
   - KiCad 7.x ou 8.x com pcbnew Python API
-  - Plataforma EDA Footprint Generator instalada (core/ com gerador_footprint.py)
+  - Plataforma EDA Footprint Generator instalada (core/ com gerador_footprint_v2.py)
   - PyYAML (pip install pyyaml)
 
 Instalação:

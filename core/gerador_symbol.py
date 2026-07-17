@@ -6,7 +6,7 @@
 # Cada componente gera UM arquivo .kicad_sym com UM símbolo.
 # Importar no KiCad: Schematic Editor → Preferences → Manage Symbol Libraries
 #
-# Tipos suportados (mesmos do gerador_footprint.py):
+# Tipos suportados (mesmos do shim tipo→padrao do v2):
 #   resistor_pth, diodo_pth, led_pth, capacitor_pth,
 #   transistor_to92, crystal_hc49,
 #   conector_pth, ci_dip, ci_soic, castellated

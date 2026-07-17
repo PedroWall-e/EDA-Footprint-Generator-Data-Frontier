@@ -91,16 +91,27 @@ def test_grupo1():
         from gerador_symbol import gerar_symbol
     teste("Import gerador_symbol", t_import_symbol)
 
-    def t_deprecation_warning_v1():
-        import warnings
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
-            import importlib
-            import gerador_footprint
-            importlib.reload(gerador_footprint)
-            assert any(issubclass(x.category, DeprecationWarning) for x in w), \
-                "gerador_footprint.py deveria emitir DeprecationWarning"
-    teste("Deprecation warning do v1", t_deprecation_warning_v1)
+    def t_v1_removido():
+        """O motor v1 foi removido: tudo passa pelo v2 + shim tipo→padrao.
+
+        Guarda de regressão — enquanto o v1 existia, a API o usava para
+        `tipo:` e divergia da CLI (mesmo YAML, saídas diferentes).
+        """
+        try:
+            import gerador_footprint  # noqa: F401
+            assert False, "gerador_footprint (v1) deveria ter sido removido"
+        except ImportError:
+            pass  # esperado
+    teste("Motor v1 removido (migração completa)", t_v1_removido)
+
+    def t_api_usa_v2():
+        """A API deve usar o mesmo motor da CLI (v2), nunca o v1."""
+        api = open(os.path.join(PROJ, 'api_server.py'), encoding='utf-8').read()
+        assert 'from gerador_footprint import' not in api, \
+            "api_server.py não pode importar o motor v1"
+        assert 'gerar_footprint_universal' in api, \
+            "api_server.py deve usar o motor v2 (gerar_footprint_universal)"
+    teste("API usa o motor v2 (igual à CLI)", t_api_usa_v2)
 
     def t_import_sexpr_parser():
         from sexpr_parser import parse_sexpr, find_all, find_one
@@ -1239,7 +1250,7 @@ def test_grupo20():
         """Forma dict: {"1": {largura, altura}} → mapeada por pino."""
         dados = {'pinos': {'overrides': {'1': {'largura': 2.5, 'altura': 1.2}}}}
         m = build_override_map(dados, W, H)
-        assert m == {1: (2.5, 1.2)}, f"Esperado {{1: (2.5, 1.2)}}, obtido {m}"
+        assert m == {'1': (2.5, 1.2)}, f"Esperado {{'1': (2.5, 1.2)}}, obtido {m}"
     teste("overrides forma dict", t_forma_dict)
 
     def t_forma_lista():
@@ -1249,15 +1260,22 @@ def test_grupo20():
             {'numeros': [25], 'largura': 3.0, 'altura': 1.4},
         ]}}
         m = build_override_map(dados, W, H)
-        assert m == {1: (2.5, 1.2), 9: (2.5, 1.2), 16: (2.5, 1.2), 25: (3.0, 1.4)}, \
-            f"Grupo não expandido corretamente: {m}"
+        assert m == {'1': (2.5, 1.2), '9': (2.5, 1.2), '16': (2.5, 1.2),
+                     '25': (3.0, 1.4)}, f"Grupo não expandido corretamente: {m}"
     teste("overrides forma lista (grupo de pinos)", t_forma_lista)
+
+    def t_chave_textual_bga():
+        """Chave é string: o BGA endereça bolas por nome ("A1"), não por índice."""
+        dados = {'pinos': {'overrides': {'A1': {'largura': 0.4, 'altura': 0.4}}}}
+        m = build_override_map(dados, W, H)
+        assert m == {'A1': (0.4, 0.4)}, f"Chave textual perdida: {m}"
+    teste("overrides com chave textual (BGA 'A1')", t_chave_textual_bga)
 
     def t_campo_ausente_usa_default():
         """largura/altura ausentes caem no default do padrão."""
         dados = {'pinos': {'overrides': [{'numeros': [3], 'largura': 2.0}]}}
         m = build_override_map(dados, W, H)
-        assert m == {3: (2.0, H)}, f"Default de altura não aplicado: {m}"
+        assert m == {'3': (2.0, H)}, f"Default de altura não aplicado: {m}"
     teste("overrides: campo ausente usa default", t_campo_ausente_usa_default)
 
     def t_ausente_ou_vazio():
@@ -1299,15 +1317,77 @@ def test_grupo20():
         assert n == 2, f"Esperado 2 pads com override, encontrado {n}"
     teste("quad_smd com overrides em lista gera (regressão)", t_quad_smd_lista_gera)
 
+    def t_overrides_honrado_em_todos_os_padroes():
+        """`pinos.overrides` deve ser honrado por todo padrão que o aceita.
+
+        Antes, só o quad_smd o lia — os demais ignoravam em SILÊNCIO: o YAML
+        era aceito, o footprint gerava, e o pad saía no tamanho padrão.
+        `custom` e `bga` ficam de fora aqui: o custom declara largura/altura
+        por pad na própria lista `pads:`, e o bga endereça bolas por nome
+        (coberto em t_chave_textual_bga / t_bga_override).
+        """
+        casos = {
+            'axial_pth': ({'padrao': 'axial_pth',
+                           'pinos': {'espacamento': 10.16, 'diametro_pad': 1.6,
+                                     'diametro_furo': 0.8},
+                           'corpo': {'formato': 'cilindro', 'diametro': 2.5,
+                                     'comprimento': 6.5}}, '1'),
+            'radial_pth': ({'padrao': 'radial_pth',
+                            'pinos': {'total': 3, 'espacamento': 2.54,
+                                      'diametro_pad': 1.6, 'diametro_furo': 0.8},
+                            'corpo': {'diametro': 4.8}}, '1'),
+            'dual_pth': ({'padrao': 'dual_pth',
+                          'pinos': {'total': 8, 'pitch': 2.54, 'diametro_pad': 1.6,
+                                    'diametro_furo': 0.8},
+                          'corpo': {'largura': 6.35, 'comprimento': 9.78,
+                                    'afastamento_colunas': 7.62}}, '1'),
+            'dual_smd': ({'padrao': 'dual_smd',
+                          'pinos': {'total': 8, 'pitch': 1.27,
+                                    'tamanho_pad': {'largura': 0.6, 'altura': 1.5},
+                                    'afastamento_colunas': 5.4},
+                          'corpo': {'largura': 3.9, 'comprimento': 4.9}}, '1'),
+        }
+        OV_W, OV_H = 2.7, 1.9   # tamanho improvável de coincidir com o default
+        for padrao, (extra, pino) in casos.items():
+            dados = {
+                'nome': f'TESTE_OV_{padrao}',
+                'margens': {'courtyard': 0.25, 'silkscreen': 0.12, 'fab_line': 0.10},
+                'kicad': {'referencia': 'U?', 'descricao': 'x', 'tags': 'x'},
+                **extra,
+            }
+            dados['pinos']['overrides'] = {pino: {'largura': OV_W, 'altura': OV_H}}
+            path = os.path.join(saida_dir, f'TESTE_ov_{padrao}.kicad_mod')
+            gerar_footprint_universal(dados, path)
+            content = open(path, 'r', encoding='utf-8').read()
+            achou = (f'(size {OV_W} {OV_H})' in content
+                     or f'(size {OV_H} {OV_W})' in content)
+            assert achou, \
+                f"padrão '{padrao}' ignorou pinos.overrides (pad saiu no tamanho padrão)"
+    teste("overrides honrado em axial/radial/dual PTH e dual_smd",
+          t_overrides_honrado_em_todos_os_padroes)
+
+    def t_bga_override():
+        """BGA: override endereçado pelo nome da bola ("A1")."""
+        dados = {
+            'nome': 'TESTE_OV_bga', 'padrao': 'bga',
+            'pinos': {'linhas': 4, 'colunas': 4, 'pitch': 1.0,
+                      'diametro_pad': 0.5,
+                      'overrides': {'A1': {'largura': 0.8, 'altura': 0.8}}},
+            'corpo': {'largura': 5.0, 'comprimento': 5.0},
+            'margens': {'courtyard': 0.25, 'silkscreen': 0.12, 'fab_line': 0.10},
+            'kicad': {'referencia': 'U?', 'descricao': 'x', 'tags': 'x'},
+        }
+        path = os.path.join(saida_dir, 'TESTE_ov_bga.kicad_mod')
+        gerar_footprint_universal(dados, path)
+        content = open(path, 'r', encoding='utf-8').read()
+        assert '(size 0.8 0.8)' in content, "bga ignorou o override da bola A1"
+    teste("bga honra override por nome da bola", t_bga_override)
+
 
 # =============================================================================
 # EXECUÇÃO
 # =============================================================================
 if __name__ == '__main__':
-    import warnings
-    warnings.filterwarnings('ignore', category=DeprecationWarning,
-                            module='gerador_footprint')
-
     sys.path.append(os.path.join(PROJ, 'libs'))
     print("\n" + "="*70)
     print("  ROTINA DE TESTES - EDA Footprint Generator v2.0")

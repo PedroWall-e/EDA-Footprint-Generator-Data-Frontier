@@ -92,7 +92,7 @@ def draw_courtyard_raw(kicad_mod, cx1, cy1, cx2, cy2, line_width=0.05):
 def draw_silkscreen_rect(kicad_mod, x1, y1, x2, y2, line_width=0.12):
     """Desenha retângulo na camada F.SilkS.
 
-    Replica o padrão exato do gerador_footprint.py:
+    Replica o padrão do motor v1 (removido; ver CHANGELOG):
       4 linhas: top, bottom, left, right.
     """
     # Top
@@ -112,7 +112,7 @@ def draw_silkscreen_rect(kicad_mod, x1, y1, x2, y2, line_width=0.12):
 def draw_fab_rect(kicad_mod, x1, y1, x2, y2, line_width=0.10):
     """Desenha retângulo na camada F.Fab.
 
-    Replica o padrão exato do gerador_footprint.py:
+    Replica o padrão do motor v1 (removido; ver CHANGELOG):
       4 linhas: top, bottom, left, right.
     """
     # Top
@@ -132,7 +132,7 @@ def draw_fab_rect(kicad_mod, x1, y1, x2, y2, line_width=0.10):
 def draw_circle_segments(kicad_mod, cx, cy, r, layer, line_width, n_segs=16):
     """Desenha um círculo aproximado por n_segs segmentos de Line.
 
-    Replica _circulo_silkscreen() do gerador_footprint.py.
+    Replica _circulo_silkscreen() do motor v1 (removido).
     Usado para corpos cilíndricos (LED, capacitor, TO-92 etc.).
     """
     for i in range(n_segs):
@@ -170,7 +170,7 @@ def draw_pin1_marker(kicad_mod, x, y, style='dot', layer='F.SilkS',
                      size=0.3, line_width=0.12):
     """Marca o pino 1 no footprint.
 
-    Estilos disponíveis (replicam padrões do gerador_footprint.py):
+    Estilos disponíveis (replicam padrões do motor v1, removido):
 
     'dot'      — Duas linhas em L (usado em castellated/conector).
     'chamfer'  — Linha diagonal no canto (usado em DIP/SOIC).
@@ -237,7 +237,7 @@ def add_reference_text(kicad_mod, nome, x, y, size=1.0, offset=1.5,
                        layer='F.SilkS', thickness=0.12):
     """Adiciona texto de referência (REF**).
 
-    Replica o padrão exato do gerador_footprint.py:
+    Replica o padrão do motor v1 (removido; ver CHANGELOG):
         Text(type=Text.TYPE_REFERENCE, text='REF**',
              at=[x, y - offset], layer='F.SilkS',
              size=[size, size], thickness=thickness)
@@ -260,7 +260,7 @@ def add_value_text(kicad_mod, nome, x, y, size=1.0, offset=1.5,
                    layer='F.Fab', thickness=0.10):
     """Adiciona texto de valor.
 
-    Replica o padrão exato do gerador_footprint.py:
+    Replica o padrão do motor v1 (removido; ver CHANGELOG):
         Text(type=Text.TYPE_VALUE, text=nome,
              at=[x, y + offset], layer='F.Fab',
              size=[size, size], thickness=thickness)
@@ -336,7 +336,11 @@ def add_3d_model(kicad_mod, nome_modelo, path_prefix='${KIPRJMOD}/', dados=None,
 # =============================================================================
 
 def build_override_map(dados, pad_w_def, pad_h_def):
-    """Normaliza `pinos.overrides` para {numero_do_pino: (largura, altura)}.
+    """Normaliza `pinos.overrides` para {identificador_do_pino: (largura, altura)}.
+
+    A chave é **string** porque no KiCad o número do pad é textual: "1" num DIP,
+    "A1" num BGA. Chavear por int excluiria os padrões de grade (BGA) do
+    mecanismo. Consulte sempre com `str(num)`.
 
     O schema (schemas/component.schema.json) declara `overrides` como `oneOf`,
     ou seja, AMBAS as formas abaixo são válidas e precisam funcionar:
@@ -370,7 +374,7 @@ def build_override_map(dados, pad_w_def, pad_h_def):
             if not isinstance(ov, dict):
                 continue
             try:
-                override_map[int(chave)] = _wh(ov)
+                override_map[str(chave)] = _wh(ov)
             except (TypeError, ValueError):
                 continue
 
@@ -383,8 +387,11 @@ def build_override_map(dados, pad_w_def, pad_h_def):
             except (TypeError, ValueError):
                 continue
             for n in (ov.get('numeros') or []):
+                # O schema tipa `numeros` como array de inteiros — validar aqui
+                # descarta lixo. (A forma dict, ao contrário, aceita chave
+                # textual de propósito: é como o BGA endereça "A1".)
                 try:
-                    override_map[int(n)] = (w, h)
+                    override_map[str(int(n))] = (w, h)
                 except (TypeError, ValueError):
                     continue
 
@@ -392,27 +399,36 @@ def build_override_map(dados, pad_w_def, pad_h_def):
 
 
 def add_pth_pad(kicad_mod, number, x, y, pad_diam, drill_diam,
-                shape=None):
+                shape=None, size=None):
     """Adiciona pad through-hole.
 
-    Replica o padrão exato do gerador_footprint.py:
         Pad(number=N, type=Pad.TYPE_THT, shape=<shape>,
-            at=[x, y], size=[pad_diam, pad_diam],
-            drill=drill_diam, layers=['*.Cu', '*.Mask'])
+            at=[x, y], size=[w, h], drill=drill_diam,
+            layers=['*.Cu', '*.Mask'])
 
     shape padrão: Pad.SHAPE_CIRCLE (use Pad.SHAPE_RECT para pino 1).
-    """
-    if shape is None:
-        shape = Pad.SHAPE_CIRCLE
 
-    validate_annular_ring(pad_diam, drill_diam)
+    size: (w, h) opcional — vem de `pinos.overrides` e sobrepõe pad_diam.
+          Um pad PTH redondo é só o caso w == h; com w != h o KiCad exige
+          SHAPE_OVAL (SHAPE_CIRCLE com lados diferentes é inválido), então a
+          troca é feita aqui. O anel é validado contra o MENOR lado, que é
+          onde ele é mais estreito.
+    """
+    w, h = (float(size[0]), float(size[1])) if size else (pad_diam, pad_diam)
+
+    if shape is None:
+        shape = Pad.SHAPE_CIRCLE if w == h else Pad.SHAPE_OVAL
+    elif shape == Pad.SHAPE_CIRCLE and w != h:
+        shape = Pad.SHAPE_OVAL
+
+    validate_annular_ring(min(w, h), drill_diam)
 
     kicad_mod.append(Pad(
         number=number,
         type=Pad.TYPE_THT,
         shape=shape,
         at=[x, y],
-        size=[pad_diam, pad_diam],
+        size=[w, h],
         drill=drill_diam,
         layers=['*.Cu', '*.Mask'],
     ))
@@ -423,7 +439,7 @@ def add_smd_pad(kicad_mod, number, x, y, width, height,
                 layers=None):
     """Adiciona pad SMD.
 
-    Replica o padrão exato do gerador_footprint.py:
+    Replica o padrão do motor v1 (removido; ver CHANGELOG):
         Pad(number=N, type=Pad.TYPE_SMT, shape=<shape>,
             at=[x, y], size=[width, height],
             layers=['F.Cu', 'F.Paste', 'F.Mask'])
