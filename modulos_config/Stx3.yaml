@@ -1,108 +1,81 @@
 # =============================================================================
-# ⚠️  NAO USE ESTE FOOTPRINT EM PLACA — a geometria NAO confere com o datasheet.
-# =============================================================================
-# Conferido contra o STX3 User Manual 8545-0198-01 R-4 (datasheets/STX3.pdf).
-# O que este arquivo diz NAO bate com o que o datasheet especifica:
+# Globalstar STX3 — transmissor satelital simplex, 32 pinos castelados
+# Modulo 20,574 x 28,702 x 4,115 mm (0.810 x 1.130 x 0.162 pol)
 #
-#   campo          | aqui   | datasheet (Fig.7, em polegadas)
-#   ---------------|--------|--------------------------------
-#   pitch          | 1.778  | 2.540  (.100")
-#   tamanho_pad    | 2.03 x 1.27 | 1.93 x 2.03  (.076" x .080")
-#   por_lado       | 16     | NAO e' 16 por lado: 9 / 7 / 9 / 7  (Fig.8)
+# Datasheet: STX3 User Manual 8545-0198-01 R-4.
+# As 32 posicoes sao DERIVADAS das cotas da Fig.7 — nenhuma medida na
+# figura. Ver missoes/stx3/derivar_stx3.py para a derivacao e o datum.
 #
-# O comentario original do pitch entregava a origem do numero:
-#   "1.778 — unico pitch padrao que cabe 16 pinos em 28.70mm"
-# ou seja, foi ESCOLHIDO para caber numa suposicao errada (16 por lado), nao
-# lido do datasheet. Viola a regra "nao invente cota".
+# padrao: custom porque a fileira INFERIOR tem pitch NAO-UNIFORME
+#   .055 | .100 | .100 | .100 | .120 | .120 | .100 | .055
+# Os .120 cercam o pino 14 (RFOUT) — folga extra para o RF. O quad_smd
+# aplica um pitch so', entao nao expressa esta peca.
 #
-# ALEM DISSO: `tipo: castellated` -> quad_smd, que assume UM pitch por peca.
-# A fileira INFERIOR do STX3 tem pitch NAO-UNIFORME:
-#     .055 | .100 | .100 | .100 | .120 | .120 | .100 | .055
-# Os .120 cercam o pino 14 = RFOUT (folga extra para o RF, Fig.8). O quad_smd
-# nao expressa isso: a peca exige `padrao: custom`.
-#
-# O QUE ESTA ESTABELECIDO (datasheet, confiavel):
-#   - Modulo: 0.810 x 1.130 x 0.162 pol = 20.574 x 28.702 x 4.115 mm (Fig.1, em
-#     TEXTO). Confirma o pcb.largura/altura abaixo.
-#   - 32 pinos em 4 lados (Table 3 vai de 1 a 32; Fig.8 mostra o arranjo):
-#       esquerdo 1-9 | base 10-16 | direito 17-25 | topo 26-32
-#   - Pitch .100" nos lados esquerdo/direito/topo; inferior nao-uniforme (acima).
-#   - Pad .076" x .080", com o lado MAIOR (.080) perpendicular a borda.
-#
-# O QUE FALTA (por isso nao da' para reescrever como custom ainda):
-#   Os offsets .075 / .117 / .153 / .055 da Fig.7 sao medidos a partir de linhas
-#   de referencia cujo datum NAO consegui determinar: a figura e' RASTER e a
-#   propria missao avisa que o desenho esta fora de escala. Tentei deduzir por
-#   fechamento aritmetico (chegava a um land pattern de .826 x 1.146", = modulo
-#   + .008"/lado) mas a verificacao em pixels REFUTOU: ha uma unica linha de
-#   referencia vertical na figura, nao duas. Sem o datum, a grade de pads nao
-#   tem onde se ancorar — e estimar seria inventar cota.
-#
-#   PARA DESTRAVAR: o proprio datasheet aponta o caminho (Table 1, Ref [A]):
-#     "STX3 Reference Design Package, including Gerbers and other files.
-#      Available upon request from Globalstar"
-#   Com os Gerbers, a grade sai exata e da' para reescrever como custom — do
-#   mesmo jeito que o NINA-B406 (ver missoes/nina-b406/).
+# Pads sao ORIENTADOS: o lado longo (.080) entra perpendicular a borda que
+# o pad ocupa; o curto (.076) corre ao longo dela. Colunas -> (.080, .076);
+# fileiras -> (.076, .080). Trocar isso poe pads em curto.
 # =============================================================================
 
 nome: "Globalstar_STX3"
+padrao: custom
 fabricante: "Globalstar"
 mpn: "~"  # Confidencial
 datasheet_url: "~"  # STX3 User Manual 8545-0198-01 R-4
-tipo: "castellated"
 
-pcb:
-  largura: 20.57    # datasheet Fig.1: 0.810 pol = 20.574 mm  ✓ confere
-  altura: 28.70     # datasheet Fig.1: 1.130 pol = 28.702 mm  ✓ confere
-  espessura: 1.50   # NAO confere: Fig.1 da' 0.162 pol = 4.115 mm (com a capa)
-  material: "FR4"
+corpo:
+  largura: 20.574      # Fig.1: 0.810 pol
+  comprimento: 28.702  # Fig.1: 1.130 pol
+  altura_3d: 4.115   # Fig.1: 0.162 pol
+  formato: retangulo
 
-shield_metalico:
-  largura: 17.54    # ideal: 2*(pad_inner_x - 0.5mm) = 2*(9.27-0.5) — folga 0.5mm em X
-  altura: 24.40     # ideal: 2*(pad_inner_y - 0.5mm) = 2*(12.7-0.5) — folga 0.5mm em Y
-                    # (antes 26.50mm causava colisao de 0.55mm nos pads 1 e 16)
-  espessura: 2.61   # altura da capa metalica acima do PCB (datasheet)
-  material: "Aluminum"
-
-pinos:
-  # total: 32 e o arranjo 9/7/9/7 sao do datasheet (Table 3 + Fig.8) — solidos.
-  # Eu havia trocado para total: 64 por leitura errada; revertido.
-  total: 32
-  lados:
-    esquerdo: 9         # pinos 1-9    (CTS, RTS, NC x4, VRF, GND, GND)
-    base: 7             # pinos 10-16  (GND x4, RFOUT, GND, GND)
-    direito: 9          # pinos 17-25  (GND x4, NC x3, PWR_EN, NC)
-    topo: 7             # pinos 26-32  (TxD, RxD, TEST2, TEST1, NC, RESET, VDIG)
-  # A contagem corrida (esquerdo -> base -> direito -> topo) ja produz
-  # esquerdo=1-9, base=10-16, direito=17-25, topo=26-32 — exatamente a Fig.8.
-  # Por isso `numeracao: {inicio_esquerdo: 1, inicio_direito: 17}` do arquivo
-  # original estava CORRETO (e eu errei ao remove-lo): com 9 a esquerda, o
-  # direito comeca mesmo em 17. Fica implicito, sem precisar declarar.
-  pitch: 2.54            # datasheet Fig.7: .100 pol. (Era 1.778 — inventado.)
-                         # ATENCAO: a fileira INFERIOR nao usa este pitch (ver
-                         # cabecalho). O quad_smd aplica um so' — por isso a
-                         # base sai ERRADA. Bloqueio conhecido.
-  tamanho_pad:
-    largura: 2.03        # .080 pol — perpendicular a borda
-    altura:  1.93        # .076 pol — ao longo da borda  (era 1.27: inventado)
-  # ATENCAO — bloco `numeracao` removido: descrevia um modulo de 2 LADOS
-  # (esquerdo 1-16, direito 17-32). Este e de 4 lados, e a contagem corre
-  # esquerdo -> base -> direito -> topo, entao a base ja ocupa 17-32:
-  # forcar inicio_direito: 17 duplicaria 16 pads (netlist errada).
-  # Ate agora o campo era ignorado pelo gerador, entao a numeracao efetiva
-  # sempre foi a sequencial 1..64 — removendo, nada muda na saida.
-  # >>> CONFERIR no datasheet se a numeracao real e mesmo sequencial 1..64.
-  #     Se cada lado comecar em outro numero, declare aqui:
-  #       numeracao: {inicio_esquerdo: 1, inicio_direito: 33}
+margens:
+  courtyard: 0.5
+  silkscreen: 0.12
+  fab_line: 0.10
 
 kicad:
   referencia: "U?"
   valor: "STX3"
-  descricao: "Globalstar STX3 Commercial IoT Satellite Transmitter Module"
-  tags: "globalstar stx3 satellite transmitter iot module smd"
-  modelo_3d: "Globalstar_STX3.step"
+  descricao: "Globalstar STX3 simplex satellite transmitter, 32 castellated pads, 20.57x28.70x4.12mm"
+  tags: "globalstar stx3 satellite simplex transmitter module castellated"
 
-margens:
-  courtyard: 0.50
-  silkscreen: 0.12
-  fab_line: 0.10
+pads:
+  # --- Coluna esquerda (topo->base) — x=-(W/2-.030); 1o pad .117 abaixo da centerline do topo; pitch .100
+  - {numero: 1, nome: "CTS", tipo_eletrico: output, x: -9.525, y: -10.6172, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 2, nome: "RTS", tipo_eletrico: input, x: -9.525, y: -8.0772, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 3, nome: "RESERVED", tipo_eletrico: passive, x: -9.525, y: -5.5372, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 4, nome: "NC", tipo_eletrico: passive, x: -9.525, y: -2.9972, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 5, nome: "NC", tipo_eletrico: passive, x: -9.525, y: -0.4572, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 6, nome: "RESERVED", tipo_eletrico: passive, x: -9.525, y: 2.0828, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 7, nome: "VRF", tipo_eletrico: power_in, x: -9.525, y: 4.6228, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 8, nome: "GND", tipo_eletrico: power_in, x: -9.525, y: 7.1628, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 9, nome: "GND", tipo_eletrico: power_in, x: -9.525, y: 9.7028, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+
+  # --- Base (esq->dir) — y=+(H/2-.030); pitch IRREGULAR .100/.100/.100/.120/.120/.100 (RFOUT=14)
+  - {numero: 10, nome: "GND", tipo_eletrico: power_in, x: -8.128, y: 13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
+  - {numero: 11, nome: "GND", tipo_eletrico: power_in, x: -5.588, y: 13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
+  - {numero: 12, nome: "GND", tipo_eletrico: power_in, x: -3.048, y: 13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
+  - {numero: 13, nome: "GND", tipo_eletrico: power_in, x: -0.508, y: 13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
+  - {numero: 14, nome: "RFOUT", tipo_eletrico: output, x: 2.54, y: 13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
+  - {numero: 15, nome: "GND", tipo_eletrico: power_in, x: 5.588, y: 13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
+  - {numero: 16, nome: "GND", tipo_eletrico: power_in, x: 8.128, y: 13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
+
+  # --- Coluna direita (base->topo) — x=+(W/2-.030); mesmos Y da coluna esquerda
+  - {numero: 17, nome: "GND", tipo_eletrico: power_in, x: 9.525, y: 9.7028, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 18, nome: "GND", tipo_eletrico: power_in, x: 9.525, y: 7.1628, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 19, nome: "GND", tipo_eletrico: power_in, x: 9.525, y: 4.6228, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 20, nome: "GND", tipo_eletrico: power_in, x: 9.525, y: 2.0828, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 21, nome: "RESERVED", tipo_eletrico: passive, x: 9.525, y: -0.4572, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 22, nome: "RESERVED", tipo_eletrico: passive, x: 9.525, y: -2.9972, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 23, nome: "RESERVED", tipo_eletrico: passive, x: 9.525, y: -5.5372, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 24, nome: "PWR_EN", tipo_eletrico: input, x: 9.525, y: -8.0772, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+  - {numero: 25, nome: "NC", tipo_eletrico: passive, x: 9.525, y: -10.6172, largura: 2.032, altura: 1.9304, formato: retangulo, montagem: smd}
+
+  # --- Topo (dir->esq) — y=-(H/2-.030); pitch .100 uniforme
+  - {numero: 26, nome: "TxD", tipo_eletrico: output, x: 7.62, y: -13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
+  - {numero: 27, nome: "RxD", tipo_eletrico: input, x: 5.08, y: -13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
+  - {numero: 28, nome: "TEST2", tipo_eletrico: input, x: 2.54, y: -13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
+  - {numero: 29, nome: "TEST1", tipo_eletrico: input, x: 0, y: -13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
+  - {numero: 30, nome: "RESERVED", tipo_eletrico: passive, x: -2.54, y: -13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
+  - {numero: 31, nome: "RESET", tipo_eletrico: input, x: -5.08, y: -13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
+  - {numero: 32, nome: "VDIG", tipo_eletrico: power_in, x: -7.62, y: -13.589, largura: 1.9304, altura: 2.032, formato: retangulo, montagem: smd}
