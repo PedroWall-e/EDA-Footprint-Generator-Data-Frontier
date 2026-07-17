@@ -1604,6 +1604,89 @@ def test_grupo20():
                 f"1x{total} tem pads coincidentes: {pos}"
     teste("header 1xN gera fileira única (regressão)", t_single_row_pth)
 
+    def t_grupos_pads_equivale_a_explicito():
+        """Um grupo tem que produzir exatamente os mesmos pads que a mão faria."""
+        from gerador_footprint_v2 import expandir_grupos_pads
+        pads = expandir_grupos_pads({'grupos_pads': [
+            {'nome': 'lat', 'numero_inicial': 1, 'n': 3,
+             'inicio': {'x': 0, 'y': 0}, 'passo': {'x': 1.0, 'y': 0},
+             'tamanho': {'largura': 0.7, 'altura': 1.15}},
+        ]})
+        assert [(p['numero'], p['x'], p['y']) for p in pads] == \
+               [(1, 0.0, 0.0), (2, 1.0, 0.0), (3, 2.0, 0.0)], pads
+        assert all(p['largura'] == 0.7 and p['altura'] == 1.15 for p in pads)
+    teste("grupos_pads: corrida uniforme", t_grupos_pads_equivale_a_explicito)
+
+    def t_grupos_pads_passos_irregulares():
+        """`passos` cobre pitch irregular — o caso da base do STX3 (RFOUT)."""
+        from gerador_footprint_v2 import expandir_grupos_pads
+        pads = expandir_grupos_pads({'grupos_pads': [
+            {'numero_inicial': 10, 'n': 4, 'inicio': {'x': 0, 'y': 5},
+             'passos': [2.54, 3.048, 2.54], 'eixo': 'x',
+             'tamanho': {'largura': 1.93, 'altura': 2.03}},
+        ]})
+        assert [p['x'] for p in pads] == [0.0, 2.54, 5.588, 8.128], [p['x'] for p in pads]
+        assert all(p['y'] == 5 for p in pads)
+
+        # numero de passos errado -> erro, nao geracao torta
+        try:
+            expandir_grupos_pads({'nome': 'T', 'grupos_pads': [
+                {'n': 4, 'inicio': {'x': 0, 'y': 0}, 'passos': [1.0],
+                 'tamanho': {'largura': 1, 'altura': 1}}]})
+            assert False, "passos com tamanho errado deveria dar erro"
+        except ValueError as e:
+            assert 'passos' in str(e).lower(), e
+    teste("grupos_pads: passos irregulares (RFOUT)", t_grupos_pads_passos_irregulares)
+
+    def t_grupos_pads_guardas():
+        """Erros comuns viram erro, não pads empilhados."""
+        from gerador_footprint_v2 import expandir_grupos_pads
+        # passo nulo com n>1 -> todos no mesmo ponto
+        try:
+            expandir_grupos_pads({'nome': 'T', 'grupos_pads': [
+                {'n': 3, 'inicio': {'x': 0, 'y': 0}, 'passo': {'x': 0, 'y': 0},
+                 'tamanho': {'largura': 1, 'altura': 1}}]})
+            assert False, "passo nulo com n>1 deveria dar erro"
+        except ValueError as e:
+            assert 'passo nulo' in str(e).lower(), e
+        # nomes em quantidade errada
+        try:
+            expandir_grupos_pads({'nome': 'T', 'grupos_pads': [
+                {'n': 3, 'inicio': {'x': 0, 'y': 0}, 'passo': {'x': 1, 'y': 0},
+                 'tamanho': {'largura': 1, 'altura': 1}, 'nomes': ['A']}]})
+            assert False, "nomes em quantidade errada deveria dar erro"
+        except ValueError as e:
+            assert 'nomes' in str(e).lower(), e
+    teste("grupos_pads: guardas (passo nulo, nomes)", t_grupos_pads_guardas)
+
+    def t_origem_pino_1():
+        """`origem: pino_1` faz a conversão que o datasheet exige do humano.
+
+        No NINA: x = -A/2 + D, y = +B/2 - E.  A=15, B=10, D=1.80, E=0.875
+        -> pino 1 em (-5.70, +4.125).
+        """
+        from gerador_footprint_v2 import resolver_origem
+        dados = {'nome': 'T', 'corpo': {'largura': 15.0, 'comprimento': 10.0},
+                 'origem': {'referencia': 'pino_1',
+                            'da_borda': {'esquerda': 1.80, 'base': 0.875}}}
+        pads = resolver_origem(dados, [{'numero': 1, 'x': 0, 'y': 0},
+                                       {'numero': 2, 'x': 1.0, 'y': 0}])
+        assert (pads[0]['x'], pads[0]['y']) == (-5.7, 4.125), pads[0]
+        assert (pads[1]['x'], pads[1]['y']) == (-4.7, 4.125), pads[1]
+
+        # default (centro) nao mexe
+        assert resolver_origem({'nome': 'T'}, [{'x': 1, 'y': 2}]) == [{'x': 1, 'y': 2}]
+
+        # faltando uma das bordas -> erro (nao adivinha)
+        try:
+            resolver_origem({'nome': 'T', 'corpo': {'largura': 15.0, 'comprimento': 10.0},
+                             'origem': {'referencia': 'pino_1',
+                                        'da_borda': {'esquerda': 1.8}}}, [{'x': 0, 'y': 0}])
+            assert False, "da_borda sem borda vertical deveria dar erro"
+        except ValueError as e:
+            assert 'borda' in str(e).lower(), e
+    teste("origem: pino_1 converte para o centro do corpo", t_origem_pino_1)
+
     def t_schema_realmente_ativo():
         """A validação de schema tem que estar ATIVA, não degradada em silêncio.
 

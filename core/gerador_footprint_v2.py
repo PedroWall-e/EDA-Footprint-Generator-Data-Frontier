@@ -1011,6 +1011,166 @@ def _gerar_quad_smd(dados, caminho_saida):
 # Pads em posições totalmente arbitrárias — antenas, baterias, supercapacitores
 # =============================================================================
 
+def expandir_grupos_pads(dados):
+    """Expande `grupos_pads` (corridas lineares) na lista de pads explícitos.
+
+    Um módulo LGA/castelado quase inteiro é feito de CORRIDAS: N pads a partir
+    de um ponto, somando um passo. O datasheet cota exatamente assim ("10 pads,
+    pitch H, a partir do pino 1"). Sem isso, o YAML exige as N coordenadas
+    calculadas a mão — o NINA-B406 vira 71 números soltos, que ninguém revisa
+    contra o datasheet e onde o erro entra sem ser visto.
+
+    Cada grupo:
+        nome: lateral_inferior        # opcional, só documenta
+        numero_inicial: 1
+        n: 10
+        inicio: {x: 0, y: 0}
+        passo:  {x: 1.00, y: 0}      # uniforme
+        # OU, para pitch irregular (ex.: a base do STX3 em volta do RFOUT):
+        passos: [2.54, 2.54, 3.048]  # n-1 passos
+        eixo: x                      # em que eixo os `passos` correm (x|y)
+        tamanho: {largura: 0.70, altura: 1.15}
+        # opcionais:
+        passo_numero: 1              # -1 numera ao contrário
+        nomes: ["CTS", "RTS", ...]   # um nome por pad, OU
+        nome_pino: "GND"             # o mesmo para todos
+        tipo_eletrico: passive
+        formato: retangulo
+        montagem: smd
+        furo: 0.0
+
+    Coordenadas seguem a convenção do KiCad (Y cresce para BAIXO), igual a
+    `pads:`. Se `origem.referencia: pino_1`, são relativas ao pino 1.
+    """
+    grupos = dados.get('grupos_pads') or []
+    if not isinstance(grupos, list):
+        raise ValueError(f"'{dados.get('nome')}': grupos_pads deve ser uma lista.")
+
+    out = []
+    for gi, g in enumerate(grupos):
+        rot = g.get('nome') or f'grupos_pads[{gi}]'
+        n = int(g.get('n', 0))
+        if n < 1:
+            raise ValueError(f"'{dados.get('nome')}': {rot} requer n >= 1.")
+
+        ini = g.get('inicio') or {}
+        x, y = float(ini.get('x', 0)), float(ini.get('y', 0))
+
+        tam = g.get('tamanho') or {}
+        if 'largura' not in tam or 'altura' not in tam:
+            raise ValueError(f"'{dados.get('nome')}': {rot} requer tamanho.largura e tamanho.altura.")
+        w, h = float(tam['largura']), float(tam['altura'])
+
+        # Passos: uniforme (`passo`) ou irregular (`passos` + `eixo`)
+        if g.get('passos') is not None:
+            passos = [float(p) for p in g['passos']]
+            if len(passos) != n - 1:
+                raise ValueError(
+                    f"'{dados.get('nome')}': {rot} tem n={n} mas {len(passos)} passos; "
+                    f"esperado {n - 1} (um entre cada par de pads)."
+                )
+            eixo = g.get('eixo', 'x')
+            if eixo not in ('x', 'y'):
+                raise ValueError(f"'{dados.get('nome')}': {rot} tem eixo={eixo!r}; use 'x' ou 'y'.")
+            deltas = [(p, 0.0) if eixo == 'x' else (0.0, p) for p in passos]
+        else:
+            passo = g.get('passo') or {}
+            dx, dy = float(passo.get('x', 0)), float(passo.get('y', 0))
+            if n > 1 and dx == 0 and dy == 0:
+                raise ValueError(f"'{dados.get('nome')}': {rot} tem n={n} mas passo nulo — "
+                                 f"os {n} pads cairiam no mesmo ponto.")
+            deltas = [(dx, dy)] * (n - 1)
+
+        nomes = g.get('nomes')
+        if nomes is not None and len(nomes) != n:
+            raise ValueError(f"'{dados.get('nome')}': {rot} tem n={n} mas {len(nomes)} nomes.")
+
+        num = int(g.get('numero_inicial', 1))
+        dnum = int(g.get('passo_numero', 1))
+
+        for i in range(n):
+            pad = {
+                'numero': num, 'x': round(x, 4), 'y': round(y, 4),
+                'largura': w, 'altura': h,
+                'formato': g.get('formato', 'retangulo'),
+                'montagem': g.get('montagem', 'smd'),
+            }
+            if g.get('furo'):
+                pad['furo'] = float(g['furo'])
+            if nomes is not None:
+                pad['nome'] = nomes[i]
+            elif g.get('nome_pino'):
+                pad['nome'] = g['nome_pino']
+            if g.get('tipo_eletrico'):
+                pad['tipo_eletrico'] = g['tipo_eletrico']
+            out.append(pad)
+            if i < n - 1:
+                x += deltas[i][0]
+                y += deltas[i][1]
+            num += dnum
+
+    return out
+
+
+def resolver_origem(dados, pads_list):
+    """Converte coordenadas relativas ao pino 1 para a origem do footprint.
+
+    Datasheet cota a partir do PINO 1 (no NINA-B406, as 27 cotas da Table 22
+    são todas assim). A origem do footprint, por convenção, é o centro do
+    corpo. Obrigar o autor do YAML a converter na mão é justamente onde o erro
+    entra — e a conta é mecânica, então é do gerador.
+
+        origem:
+          referencia: pino_1
+          da_borda: {esquerda: 1.80, base: 0.875}   # D, E do datasheet
+
+    `da_borda` diz de QUAIS bordas do corpo o pino 1 dista, porque o datasheet
+    cota distância (sempre positiva) e o lado vem do desenho. Aceita
+    esquerda/direita e topo/base — uma de cada.
+    """
+    origem = dados.get('origem')
+    if origem is None:
+        return pads_list
+    if not isinstance(origem, dict):
+        raise ValueError(f"'{dados.get('nome')}': origem deve ser um mapa "
+                         f"(ex.: {{referencia: pino_1, da_borda: {{...}}}}).")
+
+    ref = origem.get('referencia', 'centro')
+    if ref == 'centro':
+        return pads_list
+    if ref != 'pino_1':
+        raise ValueError(f"'{dados.get('nome')}': origem.referencia={ref!r} "
+                         f"não suportada; use 'centro' ou 'pino_1'.")
+
+    larg = _float(dados, 'corpo', 'largura', default=0)
+    comp = _float(dados, 'corpo', 'comprimento', default=0) or \
+        _float(dados, 'corpo', 'altura', default=0)
+    if larg <= 0 or comp <= 0:
+        raise ValueError(f"'{dados.get('nome')}': origem.referencia=pino_1 precisa de "
+                         f"corpo.largura e corpo.comprimento para achar o centro.")
+
+    borda = origem.get('da_borda') or {}
+    x1 = y1 = None
+    if 'esquerda' in borda:
+        x1 = -larg / 2 + float(borda['esquerda'])
+    elif 'direita' in borda:
+        x1 = larg / 2 - float(borda['direita'])
+    if 'topo' in borda:
+        y1 = -comp / 2 + float(borda['topo'])
+    elif 'base' in borda:
+        y1 = comp / 2 - float(borda['base'])
+
+    if x1 is None or y1 is None:
+        raise ValueError(
+            f"'{dados.get('nome')}': origem.da_borda precisa de uma borda horizontal "
+            f"(esquerda|direita) E uma vertical (topo|base) para situar o pino 1. "
+            f"Recebido: {sorted(borda) or 'nada'}."
+        )
+
+    return [{**p, 'x': round(float(p.get('x', 0)) + x1, 4),
+             'y': round(float(p.get('y', 0)) + y1, 4)} for p in pads_list]
+
+
 def _gerar_custom(dados, caminho_saida):
     """Gera footprint com pads em posições arbitrárias definidas no YAML.
 
@@ -1055,7 +1215,6 @@ def _gerar_custom(dados, caminho_saida):
             tags: "antena gps patch smd"
     """
     nome       = dados['nome']
-    pads_list  = dados.get('pads', [])
     margem_cy  = _float(dados, 'margens', 'courtyard', default=0.5)
     larg_silk  = _float(dados, 'margens', 'silkscreen', default=0.12)
     larg_fab   = _float(dados, 'margens', 'fab_line', default=0.10)
@@ -1063,8 +1222,19 @@ def _gerar_custom(dados, caminho_saida):
     descricao  = _get(dados, 'kicad', 'descricao', default='')
     tags       = _get(dados, 'kicad', 'tags', default='')
 
+    # `grupos_pads` (as corridas regulares) e `pads` (o resto irregular) se
+    # somam: os dois juntos cobrem a peça sem precisar de script externo.
+    pads_list = list(dados.get('pads') or []) + expandir_grupos_pads(dados)
+    pads_list = resolver_origem(dados, pads_list)
+
     if not pads_list:
-        raise ValueError(f"'{nome}': padrão 'custom' requer lista 'pads' no YAML.")
+        raise ValueError(f"'{nome}': padrão 'custom' requer 'pads' ou 'grupos_pads' no YAML.")
+
+    nums = [str(p.get('numero')) for p in pads_list]
+    dup = sorted({n for n in nums if nums.count(n) > 1})
+    if dup:
+        log.warning("%s: número(s) de pad repetido(s) %s — tratados como o mesmo net.",
+                    nome, dup)
 
     footprint = Footprint(nome)
     footprint.setDescription(descricao)

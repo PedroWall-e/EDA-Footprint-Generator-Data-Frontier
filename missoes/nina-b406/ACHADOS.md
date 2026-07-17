@@ -136,7 +136,21 @@ oficial da u-blox, não do PDF. Quem gerar sem o gabarito não tem como saber.
 
 # O que o gerador NÃO deu conta
 
-## 1. Grupos de pads — CONFIRMADO (é o gap central)
+## 1. Grupos de pads — CONFIRMADO e **RESOLVIDO** ✅
+
+> **Implementado.** `grupos_pads` + `origem: pino_1` existem. O
+> `NINA_B406.yaml` foi reescrito em **14 blocos** e o teste com gabarito
+> confirma: **71/71 idênticos ao oficial, 0 sobreposições** — mesmo resultado
+> dos 71 pads explícitos. O STX3 virou **4 blocos** (32/32).
+>
+> `passos: [...]` cobre pitch irregular; sem isso o STX3 (folga do RFOUT) não
+> seria expressável. `grupos_pads` e `pads` somam — o regular num, o irregular
+> no outro.
+>
+> Consequência do gap 3 do README (*"script embutido"*): **não sobrou caso
+> real.** As duas peças mais difíceis do acervo cabem em blocos declarativos.
+>
+> O texto abaixo é o diagnóstico original, mantido como registro.
 
 A peça são **14 corridas lineares** (`início + k·passo`). O `padrao: custom`
 exige **71 pads com `x`/`y` absolutos**. Resultado: um YAML de 129 linhas com 71

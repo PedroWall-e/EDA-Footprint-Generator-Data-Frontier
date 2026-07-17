@@ -3,26 +3,32 @@
 # Bluetooth LE com antena de trilha integrada no modulo.
 #
 # Datasheet: UBX-19049405 R09 — Table 22 (Land pattern dimensions).
-# TODAS as 71 posicoes sao DERIVADAS das cotas A..ZL — nenhuma medida em
-# figura, nenhuma copiada do footprint do fabricante. A derivacao foi
-# conferida pad a pad contra o footprint oficial da u-blox: 71/71 iguais.
+# Cada bloco abaixo espelha UMA linha da Table 22: as cotas entram como os
+# proprios numeros do datasheet (H, F, R, M, N, Q, S, T, U, K, L, P, ZA1,
+# ZA2, ZB), nao como coordenadas ja calculadas.
 #
-# Origem do footprint: CENTRO do modulo (como o oficial). O datasheet cota a
-# partir do PINO 1, entao a conversao aplicada foi:
-#     x = -A/2 + D + dx = -5,700 + dx
-#     y = +B/2 - E - dy = +4,125 - dy
+# origem: pino_1 -> as posicoes sao relativas ao PINO 1, como o datasheet
+# cota. `da_borda` traz D e E (borda -> centro do pino 1); o gerador faz a
+# conversao para o centro do corpo.
 #
-# NOTA: os 71 pads estao explicitos porque o `padrao: custom` exige posicao
-# absoluta por pad. A peca e, na verdade, 14 corridas lineares regulares
-# (inicio + k*passo). Ver missoes/nina-b406/ACHADOS.md.
+# Y segue a convencao do KiCad (cresce para BAIXO). O datasheet cota para
+# cima, entao os dy aparecem negados aqui.
+#
+# Pads sao ORIENTADOS: J (1,15 = "pin length") entra PERPENDICULAR a borda;
+# I (0,70 = "pin width") corre AO LONGO dela. Fileira em X -> (I, J);
+# fileira em Y -> (J, I). Trocar isso poe os pads laterais em curto.
 # =============================================================================
 
 nome: "NINA_B406"
 padrao: custom
 
+origem:
+  referencia: pino_1
+  da_borda: {esquerda: 1.8, base: 0.875}   # Table 22 D e E
+
 corpo:
-  largura: 15.0          # Table 22 A — module PCB length
-  comprimento: 10.0      # Table 22 B — module PCB width
+  largura: 15          # Table 22 A
+  comprimento: 10      # Table 22 B
   formato: retangulo
 
 margens:
@@ -36,94 +42,138 @@ kicad:
   descricao: "u-blox NINA-B406 Bluetooth LE module, LGA-71, 15x10x2.23mm, integrated antenna"
   tags: "u-blox nina b406 bluetooth ble lga71 module antenna"
 
-pads:
-  # --- Lateral inferior — pino 1 na origem; pitch H=1,00; pad J x I
-  - {numero: 1, nome: "GPIO_1", tipo_eletrico: bidirectional, x: -5.7, y: 4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 2, nome: "XL1/GPIO_2", tipo_eletrico: bidirectional, x: -4.7, y: 4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 3, nome: "XL2/GPIO_3", tipo_eletrico: bidirectional, x: -3.7, y: 4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 4, nome: "GPIO_4", tipo_eletrico: bidirectional, x: -2.7, y: 4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 5, nome: "GPIO_5", tipo_eletrico: bidirectional, x: -1.7, y: 4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 6, nome: "GND", tipo_eletrico: power_in, x: -0.7, y: 4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 7, nome: "GPIO_7", tipo_eletrico: bidirectional, x: 0.3, y: 4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 8, nome: "SWO/TRACE_D0/GPIO_8", tipo_eletrico: bidirectional, x: 1.3, y: 4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 9, nome: "VCC_IO", tipo_eletrico: power_in, x: 2.3, y: 4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 10, nome: "VCC", tipo_eletrico: power_in, x: 3.3, y: 4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
+grupos_pads:
+  # --- lateral_inferior  (pino 1 na origem; pitch H; pad I x J)
+  - nome: lateral_inferior
+    numero_inicial: 1
+    n: 10
+    inicio: {x: 0, y: -0}
+    passo:  {x: 1, y: -0}
+    tamanho: {largura: 0.7, altura: 1.15}
+    nomes: ["GPIO_1", "XL1/GPIO_2", "XL2/GPIO_3", "GPIO_4", "GPIO_5", "GND", "GPIO_7", "SWO/TRACE_D0/GPIO_8", "VCC_IO", "VCC"]
 
-  # --- Fileira da antena — dx=R=8,925; de F=2,125, pitch H
-  - {numero: 11, nome: "SWDCLK", tipo_eletrico: input, x: 3.225, y: 2, largura: 1.15, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 12, nome: "GND", tipo_eletrico: power_in, x: 3.225, y: 1, largura: 1.15, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 13, nome: "ANT", tipo_eletrico: bidirectional, x: 3.225, y: 0, largura: 1.15, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 14, nome: "GND", tipo_eletrico: power_in, x: 3.225, y: -1, largura: 1.15, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 15, nome: "SWDIO", tipo_eletrico: bidirectional, x: 3.225, y: -2, largura: 1.15, altura: 0.7, formato: retangulo, montagem: smd}
+  # --- fileira_antena  (dx=R; de F, pitch H)
+  - nome: fileira_antena
+    numero_inicial: 11
+    n: 5
+    inicio: {x: 8.925, y: -2.125}
+    passo:  {x: 0, y: -1}
+    tamanho: {largura: 1.15, altura: 0.7}
+    nomes: ["SWDCLK", "GND", "ANT", "GND", "SWDIO"]
 
-  # --- Lateral superior — dy=B-2E=8,25; pitch H
-  - {numero: 16, nome: "GPIO_16", tipo_eletrico: bidirectional, x: 3.3, y: -4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 17, nome: "GPIO_17", tipo_eletrico: bidirectional, x: 2.3, y: -4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 18, nome: "GPIO_18", tipo_eletrico: bidirectional, x: 1.3, y: -4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 19, nome: "RESET_N", tipo_eletrico: bidirectional, x: 0.3, y: -4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 20, nome: "GPIO_20", tipo_eletrico: bidirectional, x: -0.7, y: -4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 21, nome: "GPIO_21", tipo_eletrico: bidirectional, x: -1.7, y: -4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 22, nome: "GPIO_22", tipo_eletrico: bidirectional, x: -2.7, y: -4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 23, nome: "GPIO_23", tipo_eletrico: bidirectional, x: -3.7, y: -4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 24, nome: "GPIO_24", tipo_eletrico: bidirectional, x: -4.7, y: -4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
-  - {numero: 25, nome: "GPIO_25", tipo_eletrico: bidirectional, x: -5.7, y: -4.125, largura: 0.7, altura: 1.15, formato: retangulo, montagem: smd}
+  # --- lateral_superior  (dy=B-2E; pitch H, dx decrescente)
+  - nome: lateral_superior
+    numero_inicial: 16
+    n: 10
+    inicio: {x: 9, y: -8.25}
+    passo:  {x: -1, y: -0}
+    tamanho: {largura: 0.7, altura: 1.15}
+    tipo_eletrico: bidirectional
+    nomes: ["GPIO_16", "GPIO_17", "GPIO_18", "RESET_N", "GPIO_20", "GPIO_21", "GPIO_22", "GPIO_23", "GPIO_24", "GPIO_25"]
 
-  # --- Coluna lateral esquerda — dx=Y=0,075; pitch H
-  - {numero: 26, nome: "GND", tipo_eletrico: power_in, x: -5.625, y: -2, largura: 1.15, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 27, nome: "GPIO_27", tipo_eletrico: bidirectional, x: -5.625, y: -1, largura: 1.15, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 28, nome: "NFC1/GPIO_28", tipo_eletrico: bidirectional, x: -5.625, y: 0, largura: 1.15, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 29, nome: "NFC2/GPIO_29", tipo_eletrico: bidirectional, x: -5.625, y: 1, largura: 1.15, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 30, nome: "GND", tipo_eletrico: power_in, x: -5.625, y: 2, largura: 1.15, altura: 0.7, formato: retangulo, montagem: smd}
+  # --- coluna_esquerda  (dx=Y; de F+4H, pitch -H)
+  - nome: coluna_esquerda
+    numero_inicial: 26
+    n: 5
+    inicio: {x: 0.075, y: -6.125}
+    passo:  {x: 0, y: 1}
+    tamanho: {largura: 1.15, altura: 0.7}
+    nomes: ["GND", "GPIO_27", "NFC1/GPIO_28", "NFC2/GPIO_29", "GND"]
 
-  # --- Interna inferior — dy=N=1,375; de M=1,45, pitch Q=1,10; pad O
-  - {numero: 31, nome: "VBUS", tipo_eletrico: power_in, x: -4.25, y: 2.75, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 32, nome: "TRACE_D2/GPIO_32", tipo_eletrico: bidirectional, x: -3.15, y: 2.75, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 33, nome: "TRACE_D3/GPIO_33", tipo_eletrico: bidirectional, x: -2.05, y: 2.75, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 34, nome: "GPIO_34", tipo_eletrico: bidirectional, x: -0.95, y: 2.75, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 35, nome: "GPIO_35", tipo_eletrico: bidirectional, x: 0.15, y: 2.75, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 36, nome: "GPIO_36", tipo_eletrico: bidirectional, x: 1.25, y: 2.75, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
+  # --- interna_inferior  (dy=N; de M, pitch Q; pad O)
+  - nome: interna_inferior
+    numero_inicial: 31
+    n: 6
+    inicio: {x: 1.45, y: -1.375}
+    passo:  {x: 1.1, y: -0}
+    tamanho: {largura: 0.7, altura: 0.7}
+    nomes: ["VBUS", "TRACE_D2/GPIO_32", "TRACE_D3/GPIO_33", "GPIO_34", "GPIO_35", "GPIO_36"]
 
-  # --- Interna superior — dy=(B-2E)-N=6,875; pitch Q
-  - {numero: 37, nome: "GPIO_37", tipo_eletrico: bidirectional, x: 1.25, y: -2.75, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 38, nome: "GPIO_38", tipo_eletrico: bidirectional, x: 0.15, y: -2.75, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 39, nome: "GPIO_39", tipo_eletrico: bidirectional, x: -0.95, y: -2.75, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 40, nome: "GPIO_40", tipo_eletrico: bidirectional, x: -2.05, y: -2.75, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 41, nome: "GPIO_41", tipo_eletrico: bidirectional, x: -3.15, y: -2.75, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 42, nome: "GPIO_42", tipo_eletrico: bidirectional, x: -4.25, y: -2.75, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
+  # --- interna_superior  (dy=(B-2E)-N; pitch Q)
+  - nome: interna_superior
+    numero_inicial: 37
+    n: 6
+    inicio: {x: 6.95, y: -6.875}
+    passo:  {x: -1.1, y: -0}
+    tamanho: {largura: 0.7, altura: 0.7}
+    tipo_eletrico: bidirectional
+    nomes: ["GPIO_37", "GPIO_38", "GPIO_39", "GPIO_40", "GPIO_41", "GPIO_42"]
 
-  # --- Interna coluna esquerda — dx=M=1,45; pitch Q
-  - {numero: 43, nome: "GPIO_43", tipo_eletrico: bidirectional, x: -4.25, y: -1.65, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 44, nome: "GPIO_44", tipo_eletrico: bidirectional, x: -4.25, y: -0.55, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 45, nome: "TRACE_CLK/GPIO_45", tipo_eletrico: bidirectional, x: -4.25, y: 0.55, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 46, nome: "TRACE_D1/GPIO_46", tipo_eletrico: bidirectional, x: -4.25, y: 1.65, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
+  # --- interna_coluna_esq  (dx=M; de N+4Q, pitch -Q)
+  - nome: interna_coluna_esq
+    numero_inicial: 43
+    n: 4
+    inicio: {x: 1.45, y: -5.775}
+    passo:  {x: 0, y: 1.1}
+    tamanho: {largura: 0.7, altura: 0.7}
+    tipo_eletrico: bidirectional
+    nomes: ["GPIO_43", "GPIO_44", "TRACE_CLK/GPIO_45", "TRACE_D1/GPIO_46"]
 
-  # --- Externa — dx=-U=-1,15; de T=0,125, pitch S=1,00
-  - {numero: 47, nome: "GPIO_47", tipo_eletrico: bidirectional, x: -6.85, y: -4, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 48, nome: "GPIO_48", tipo_eletrico: bidirectional, x: -6.85, y: -3, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 49, nome: "GPIO_49", tipo_eletrico: bidirectional, x: -6.85, y: -2, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 50, nome: "GPIO_50", tipo_eletrico: bidirectional, x: -6.85, y: -1, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 51, nome: "GPIO_51", tipo_eletrico: bidirectional, x: -6.85, y: 0, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 52, nome: "GPIO_52", tipo_eletrico: bidirectional, x: -6.85, y: 1, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 53, nome: "GND", tipo_eletrico: power_in, x: -6.85, y: 2, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 54, nome: "USB_DP", tipo_eletrico: bidirectional, x: -6.85, y: 3, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 55, nome: "USB_DM", tipo_eletrico: bidirectional, x: -6.85, y: 4, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
+  # --- externa  (dx=-U; de T+8S, pitch -S)
+  - nome: externa
+    numero_inicial: 47
+    n: 9
+    inicio: {x: -1.15, y: -8.125}
+    passo:  {x: 0, y: 1}
+    tamanho: {largura: 0.7, altura: 0.7}
+    nomes: ["GPIO_47", "GPIO_48", "GPIO_49", "GPIO_50", "GPIO_51", "GPIO_52", "GND", "USB_DP", "USB_DM"]
 
-  # --- Central — grade colunas K-3P..K, linhas L..L+3P; pitch P=1,15
-  - {numero: 56, nome: "GND", tipo_eletrico: power_in, x: -2.925, y: 0.575, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 57, nome: "GND", tipo_eletrico: power_in, x: -2.925, y: -0.575, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 58, nome: "GND", tipo_eletrico: power_in, x: -1.775, y: 1.725, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 59, nome: "GND", tipo_eletrico: power_in, x: -1.775, y: 0.575, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 60, nome: "GND", tipo_eletrico: power_in, x: -1.775, y: -0.575, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 61, nome: "GND", tipo_eletrico: power_in, x: -1.775, y: -1.725, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 62, nome: "GND", tipo_eletrico: power_in, x: -0.625, y: 0.575, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 63, nome: "GND", tipo_eletrico: power_in, x: -0.625, y: -0.575, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 64, nome: "GND", tipo_eletrico: power_in, x: 0.525, y: 1.725, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 65, nome: "GND", tipo_eletrico: power_in, x: 0.525, y: 0.575, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 66, nome: "GND", tipo_eletrico: power_in, x: 0.525, y: -0.575, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 67, nome: "GND", tipo_eletrico: power_in, x: 0.525, y: -1.725, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
+  # --- central_col1  (dx=K-3P; de L+P, pitch P)
+  - nome: central_col1
+    numero_inicial: 56
+    n: 2
+    inicio: {x: 2.775, y: -3.55}
+    passo:  {x: 0, y: -1.15}
+    tamanho: {largura: 0.7, altura: 0.7}
+    tipo_eletrico: power_in
+    nomes: ["GND", "GND"]
 
-  # --- GND da antena — dx=ZA1=10,0 e ZA2=12,55; dy=-ZB / (B-2E)+ZB; pad ZL
-  - {numero: 68, nome: "GND", tipo_eletrico: power_in, x: 4.3, y: 4.35, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 69, nome: "GND", tipo_eletrico: power_in, x: 6.85, y: 4.35, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 70, nome: "GND", tipo_eletrico: power_in, x: 6.85, y: -4.35, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
-  - {numero: 71, nome: "GND", tipo_eletrico: power_in, x: 4.3, y: -4.35, largura: 0.7, altura: 0.7, formato: retangulo, montagem: smd}
+  # --- central_col2  (dx=K-2P; de L, pitch P)
+  - nome: central_col2
+    numero_inicial: 58
+    n: 4
+    inicio: {x: 3.925, y: -2.4}
+    passo:  {x: 0, y: -1.15}
+    tamanho: {largura: 0.7, altura: 0.7}
+    tipo_eletrico: power_in
+    nomes: ["GND", "GND", "GND", "GND"]
+
+  # --- central_col3  (dx=K-P; de L+P, pitch P)
+  - nome: central_col3
+    numero_inicial: 62
+    n: 2
+    inicio: {x: 5.075, y: -3.55}
+    passo:  {x: 0, y: -1.15}
+    tamanho: {largura: 0.7, altura: 0.7}
+    tipo_eletrico: power_in
+    nomes: ["GND", "GND"]
+
+  # --- central_col4  (dx=K; de L, pitch P)
+  - nome: central_col4
+    numero_inicial: 64
+    n: 4
+    inicio: {x: 6.225, y: -2.4}
+    passo:  {x: 0, y: -1.15}
+    tamanho: {largura: 0.7, altura: 0.7}
+    tipo_eletrico: power_in
+    nomes: ["GND", "GND", "GND", "GND"]
+
+  # --- gnd_antena_inferior  (dx=ZA1->ZA2; dy=-ZB)
+  - nome: gnd_antena_inferior
+    numero_inicial: 68
+    n: 2
+    inicio: {x: 10, y: 0.225}
+    passo:  {x: 2.55, y: -0}
+    tamanho: {largura: 0.7, altura: 0.7}
+    tipo_eletrico: power_in
+    nomes: ["GND", "GND"]
+
+  # --- gnd_antena_superior  (dx=ZA2->ZA1; dy=(B-2E)+ZB)
+  - nome: gnd_antena_superior
+    numero_inicial: 70
+    n: 2
+    inicio: {x: 12.55, y: -8.475}
+    passo:  {x: -2.55, y: -0}
+    tamanho: {largura: 0.7, altura: 0.7}
+    tipo_eletrico: power_in
+    nomes: ["GND", "GND"]

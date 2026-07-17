@@ -110,6 +110,16 @@
       },
       "description": "Lista de pads individuais com posição, tamanho e formato arbitrários. Obrigatório para padrao: custom."
     },
+    "grupos_pads": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/grupo_pads"
+      },
+      "description": "Corridas lineares de pads (padrao: custom). Soma com `pads`: os regulares aqui, os irregulares em `pads`."
+    },
+    "origem": {
+      "$ref": "#/$defs/origem"
+    },
     "kicad": {
       "$ref": "#/$defs/kicad",
       "description": "Metadados para exportação ao KiCad — referência, valor, descrição, tags e modelo 3D."
@@ -229,14 +239,23 @@
         ]
       },
       "then": {
-        "required": [
-          "pads"
-        ],
         "properties": {
           "pads": {
-            "description": "Lista de pads individuais — obrigatória para padrao: custom."
+            "description": "Pads individuais. Para padrao: custom, use `pads` e/ou `grupos_pads` — pelo menos um dos dois."
           }
-        }
+        },
+        "anyOf": [
+          {
+            "required": [
+              "pads"
+            ]
+          },
+          {
+            "required": [
+              "grupos_pads"
+            ]
+          }
+        ]
       }
     },
     {
@@ -1017,6 +1036,193 @@
         }
       },
       "description": "Pad térmico central (alternativa root-level)."
+    },
+    "grupo_pads": {
+      "type": "object",
+      "description": "Uma CORRIDA linear de pads: n pads a partir de `inicio`, somando `passo` (ou os `passos` irregulares). Espelha como o datasheet cota ('10 pads, pitch H, a partir do pino 1') em vez de exigir as n coordenadas calculadas.",
+      "properties": {
+        "nome": {
+          "type": "string",
+          "description": "Rótulo do grupo. Só documenta; aparece nas mensagens de erro."
+        },
+        "numero_inicial": {
+          "type": [
+            "integer",
+            "string"
+          ],
+          "description": "Número do primeiro pad da corrida."
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Quantidade de pads."
+        },
+        "inicio": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number",
+              "description": "X do primeiro pad, mm."
+            },
+            "y": {
+              "type": "number",
+              "description": "Y do primeiro pad, mm (KiCad: cresce para baixo)."
+            }
+          },
+          "required": [
+            "x",
+            "y"
+          ],
+          "additionalProperties": false,
+          "description": "Posição do primeiro pad."
+        },
+        "passo": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number",
+              "description": "Incremento X, mm."
+            },
+            "y": {
+              "type": "number",
+              "description": "Incremento Y, mm."
+            }
+          },
+          "additionalProperties": false,
+          "description": "Passo UNIFORME entre pads. Use `passos` para pitch irregular."
+        },
+        "passos": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Passos IRREGULARES: exatamente n-1 valores, ao longo de `eixo`. Ex.: a fileira inferior do STX3, com folga extra em volta do RFOUT."
+        },
+        "eixo": {
+          "type": "string",
+          "enum": [
+            "x",
+            "y"
+          ],
+          "description": "Eixo em que os `passos` correm. Default: x."
+        },
+        "tamanho": {
+          "type": "object",
+          "properties": {
+            "largura": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "altura": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "largura",
+            "altura"
+          ],
+          "additionalProperties": false,
+          "description": "Tamanho dos pads da corrida."
+        },
+        "passo_numero": {
+          "type": "integer",
+          "description": "Incremento do número do pad. Default 1; use -1 para numerar ao contrário."
+        },
+        "nomes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Um nome por pad (exatamente n)."
+        },
+        "nome_pino": {
+          "type": "string",
+          "description": "O mesmo nome para todos os pads da corrida (ex.: 'GND')."
+        },
+        "tipo_eletrico": {
+          "type": "string",
+          "enum": [
+            "input",
+            "output",
+            "bidirectional",
+            "power_in",
+            "power_out",
+            "passive",
+            "open_collector",
+            "tri_state",
+            "unspecified"
+          ]
+        },
+        "formato": {
+          "type": "string",
+          "enum": [
+            "retangulo",
+            "circulo",
+            "oval",
+            "roundrect"
+          ]
+        },
+        "montagem": {
+          "type": "string",
+          "enum": [
+            "smd",
+            "pth"
+          ]
+        },
+        "furo": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Diâmetro do furo, mm. Só para montagem: pth."
+        }
+      },
+      "required": [
+        "n",
+        "inicio",
+        "tamanho"
+      ],
+      "additionalProperties": false
+    },
+    "origem": {
+      "type": "object",
+      "description": "De onde partem as coordenadas dos pads. Default: centro do corpo.",
+      "properties": {
+        "referencia": {
+          "type": "string",
+          "enum": [
+            "centro",
+            "pino_1"
+          ],
+          "description": "'pino_1': as coordenadas são relativas ao pino 1, como o datasheet cota. O gerador converte para o centro do corpo."
+        },
+        "da_borda": {
+          "type": "object",
+          "properties": {
+            "esquerda": {
+              "type": "number",
+              "description": "Borda esquerda -> centro do pino 1, mm."
+            },
+            "direita": {
+              "type": "number",
+              "description": "Borda direita -> centro do pino 1, mm."
+            },
+            "topo": {
+              "type": "number",
+              "description": "Borda de cima -> centro do pino 1, mm."
+            },
+            "base": {
+              "type": "number",
+              "description": "Borda de baixo -> centro do pino 1, mm."
+            }
+          },
+          "additionalProperties": false,
+          "description": "Distâncias da BORDA do corpo ao centro do pino 1 (o D e o E do datasheet). Exige uma borda horizontal (esquerda|direita) e uma vertical (topo|base) — o datasheet cota distância, e o lado vem do desenho."
+        }
+      },
+      "required": [
+        "referencia"
+      ],
+      "additionalProperties": false
     }
   }
 }

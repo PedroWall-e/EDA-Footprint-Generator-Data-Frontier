@@ -351,6 +351,51 @@ pin_types:
 # ─────────────────────────────────────────────────────────────────────────────
 # SEÇÃO 4: MOTOR UNIVERSAL (padrao:) — Padrões Paramétricos
 #
+# padrao: custom — GRUPOS DE PADS (grupos_pads) e ORIGEM NO PINO 1
+# ---------------------------------------------------------------------------
+# Um modulo LGA/castelado quase inteiro e feito de CORRIDAS: n pads a partir de
+# um ponto, somando um passo. O datasheet cota exatamente assim. Declare a
+# REGRA, nao as n coordenadas ja calculadas:
+#
+#   origem:
+#     referencia: pino_1        # coordenadas relativas ao PINO 1 (como o datasheet)
+#     da_borda: {esquerda: 1.80, base: 0.875}   # D e E: borda -> centro do pino 1
+#                               # exige UMA horizontal (esquerda|direita) e UMA
+#                               # vertical (topo|base): o datasheet cota distancia,
+#                               # o lado vem do desenho.
+#
+#   grupos_pads:
+#     - nome: lateral_inferior  # so documenta
+#       numero_inicial: 1
+#       n: 10
+#       inicio: {x: 0, y: 0}    # relativo ao pino 1
+#       passo:  {x: 1.00, y: 0} # H — passo UNIFORME
+#       tamanho: {largura: 0.70, altura: 1.15}   # I x J
+#       nomes: ["GPIO_1", "XL1/GPIO_2", ...]     # opcional, 1 por pad
+#       # ou nome_pino: "GND" para todos; tipo_eletrico/formato/montagem/furo
+#
+#     - nome: base              # PITCH IRREGULAR (ex.: folga do RFOUT no STX3)
+#       numero_inicial: 10
+#       n: 7
+#       inicio: {x: -8.128, y: 13.589}
+#       passos: [2.54, 2.54, 2.54, 3.048, 3.048, 2.54]   # exatamente n-1
+#       eixo: x                 # em que eixo os `passos` correm
+#       tamanho: {largura: 1.93, altura: 2.032}
+#
+# `grupos_pads` e `pads` SOMAM: as corridas regulares em grupos_pads, o resto
+# irregular em pads. Juntos cobrem qualquer peca sem script externo.
+#   NINA-B406 (LGA-71): 71 pads -> 14 blocos
+#   Globalstar STX3:    32 pads ->  4 blocos
+#
+# Y segue a convencao do KiCad (cresce para BAIXO), igual a `pads`. O datasheet
+# costuma cotar para cima — nesse caso os dy entram negados.
+#
+# ATENCAO a orientacao do pad: quando o datasheet cota "pin length" x "pin
+# width", o COMPRIMENTO entra perpendicular a borda que o pad ocupa e a LARGURA
+# corre ao longo dela. Fileira em X -> (largura=width, altura=length); fileira
+# em Y -> (largura=length, altura=width). Trocar isso poe os pads em curto.
+# ---------------------------------------------------------------------------
+
 # padrao: single_row_pth — PIN HEADER 1xN (fileira UNICA PTH)
 # ---------------------------------------------------------------------------
 # Pads numa coluna em x=0, pino 1 no topo (convencao do KiCad p/ PinHeader_1xN).
