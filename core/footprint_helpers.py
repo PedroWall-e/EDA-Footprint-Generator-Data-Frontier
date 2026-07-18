@@ -785,6 +785,45 @@ def _partes_livres(cobertos):
     return livres
 
 
+def _redesenhar_marcador_pino1(kicad_mod, pads, pads_info, folga,
+                               layer='F.SilkS', width=0.12, tam=0.3):
+    """Redesenha o ponto do pino 1 FORA do cobre, quando o recorte o apagou.
+
+    Coloca um pequeno 'L' logo além da borda do pad 1, no sentido que afasta do
+    centro do footprint (lado de fora, onde não há outros pads). Verifica que
+    nenhum traço cruza cobre antes de desenhar — se não houver espaço livre,
+    não desenha (o chamador então avisa). Devolve True se desenhou.
+    """
+    alvo = next((p for p in pads_info if p[0] == '1'), None)
+    if alvo is None:
+        return False
+    _, x0, y0, x1, y1 = alvo
+    cx1, cy1 = (x0 + x1) / 2, (y0 + y1) / 2
+    ccx = sum((p[1] + p[3]) / 2 for p in pads_info) / len(pads_info)
+    ccy = sum((p[2] + p[4]) / 2 for p in pads_info) / len(pads_info)
+
+    dx, dy = cx1 - ccx, cy1 - ccy
+    n = math.hypot(dx, dy)
+    ux, uy = (dx / n, dy / n) if n > 1e-9 else (-1.0, -1.0)
+
+    margem = folga + 0.5 * width
+    ax = cx1 + ux * ((x1 - x0) / 2 + margem + tam + 0.1)
+    ay = cy1 + uy * ((y1 - y0) / 2 + margem + tam + 0.1)
+
+    segs = [((ax - tam, ay - tam), (ax - tam, ay + tam)),
+            ((ax - tam, ay - tam), (ax + tam, ay - tam))]
+    for a, b in segs:
+        for (px0, py0, px1, py1) in pads:
+            if _intervalo_dentro(a, b, (px0 - margem, py0 - margem,
+                                        px1 + margem, py1 + margem)):
+                return False   # cruzaria cobre — não arrisca tinta sobre pad
+    for a, b in segs:
+        ln = Line(start=list(a), end=list(b), layer=layer, width=width)
+        ln._marcador_pino1 = True
+        kicad_mod.append(ln)
+    return True
+
+
 def recortar_silk_sobre_pads(kicad_mod, folga=FOLGA_SILK_PAD, min_seg=0.05):
     """Recorta os segmentos de F.SilkS que cruzam cobre exposto.
 
@@ -799,13 +838,16 @@ def recortar_silk_sobre_pads(kicad_mod, folga=FOLGA_SILK_PAD, min_seg=0.05):
     if Line is None:
         return (0, 0, 0)
 
-    pads = []
+    pads = []       # caixas dos pads expostos, para o recorte
+    pads_info = []  # (numero, x0, y0, x1, y1), para reposicionar o marcador
     for no in kicad_mod.getAllChilds():
         if type(no).__name__ != 'Pad':
             continue
         camadas = list(getattr(no, 'layers', []) or [])
         if any('Mask' in c or 'Paste' in c for c in camadas):
-            pads.append(_caixa_pad(no))
+            caixa = _caixa_pad(no)
+            pads.append(caixa)
+            pads_info.append((str(getattr(no, 'number', '')), *caixa))
     if not pads:
         return (0, 0, 0)
 
@@ -825,7 +867,11 @@ def recortar_silk_sobre_pads(kicad_mod, folga=FOLGA_SILK_PAD, min_seg=0.05):
             silk_aninhado += 1
 
     recortadas = removidas = perdidos = 0
+    havia_marcador = sobrou_marcador = False
     for linha in silk:
+        eh_marcador = bool(getattr(linha, '_marcador_pino1', False))
+        if eh_marcador:
+            havia_marcador = True
         p0 = (linha.start_pos.x, linha.start_pos.y)
         p1 = (linha.end_pos.x, linha.end_pos.y)
         margem = folga + 0.5 * float(getattr(linha, 'width', 0.12) or 0.12)
@@ -836,6 +882,8 @@ def recortar_silk_sobre_pads(kicad_mod, folga=FOLGA_SILK_PAD, min_seg=0.05):
             if iv:
                 cobertos.append(iv)
         if not cobertos:
+            if eh_marcador:
+                sobrou_marcador = True   # marcador intacto, longe dos pads
             continue
 
         livres = [(a, b) for a, b in _partes_livres(cobertos)
@@ -843,24 +891,32 @@ def recortar_silk_sobre_pads(kicad_mod, folga=FOLGA_SILK_PAD, min_seg=0.05):
         kicad_mod.remove(linha)
         if not livres:
             removidas += 1
-            if getattr(linha, '_marcador_pino1', False):
+            if eh_marcador:
                 perdidos += 1
             continue
         recortadas += 1
+        if eh_marcador:
+            sobrou_marcador = True       # sobrou pelo menos um trecho do marcador
         for a, b in livres:
             novo = Line(
                 start=[p0[0] + (p1[0] - p0[0]) * a, p0[1] + (p1[1] - p0[1]) * a],
                 end=[p0[0] + (p1[0] - p0[0]) * b, p0[1] + (p1[1] - p0[1]) * b],
                 layer=linha.layer, width=linha.width,
             )
-            if getattr(linha, '_marcador_pino1', False):
+            if eh_marcador:
                 novo._marcador_pino1 = True
             kicad_mod.append(novo)
 
-    if perdidos:
-        log.warning('%d marcador(es) de pino 1 removido(s) por cair(em) sobre '
-                    'cobre — o footprint fica sem indicação de polaridade',
-                    perdidos)
+    # Marcador de pino 1 apagado inteiro: em vez de ficar sem indicação de
+    # polaridade, redesenha um ponto FORA da zona de cobre, junto ao pino 1.
+    if havia_marcador and not sobrou_marcador:
+        if _redesenhar_marcador_pino1(kicad_mod, pads, pads_info, folga):
+            log.info('Marcador de pino 1 caiu sobre cobre e foi reposicionado '
+                     'para fora do pad')
+        else:
+            log.warning('Marcador de pino 1 removido por cair sobre cobre e sem '
+                        'espaço livre para reposicioná-lo — footprint sem '
+                        'indicação de polaridade')
     if silk_aninhado:
         log.warning('%d linha(s) de silk aninhada(s) não foram recortadas — '
                     'silk sobre pad pode escapar; desenhe o silk no topo do '

@@ -140,7 +140,10 @@ Teste Gerador de footprint/
 │   ├── gerador_universal.py       # Orquestrador: YAML → footprint + sym + 3D
 │   ├── geometria_pads.py          # Cálculo de geometria dos pads
 │   ├── exportar_biblioteca.py     # Exportação em lote para biblioteca KiCad
-│   ├── verificar_kicad.py         # Validação DRC dos footprints gerados
+│   ├── verificador_drc.py         # DRC: regras do YAML (estimativa) + geometria real do .kicad_mod (silk sobre pad, colisão)
+│   ├── verificador_modelo_3d.py   # Confere que o modelo .step referenciado existe
+│   ├── conferir_footprint.py      # Confere colisão de pads, gabarito e símbolo × footprint
+│   ├── verificar_kicad.py         # Valida os .kicad_mod gerados contra as specs do KiCad
 │   └── log_config.py              # Configuração de logging
 │
 ├── modulos_config/            # 📝 Configurações YAML dos componentes

@@ -2011,37 +2011,33 @@ def test_grupo21():
     teste("quad_smd: símbolo honra pinos.numeracao (regressão)",
           t_quad_smd_numeracao_casa_simbolo)
 
-    def t_marcador_pino1_aviso_ativo():
-        """O aviso de marcador de pino 1 apagado tem que disparar de verdade.
+    def t_marcador_pino1_reposicionado():
+        """Marcador de pino 1 que cai sobre o pad é reposicionado para fora dele.
 
-        Regressão: draw_pin1_marker não setava _marcador_pino1, então o aviso
-        era código morto — um marcador apagado pelo recorte passava calado.
+        Regressão dupla: draw_pin1_marker não marcava as linhas (o recorte não
+        sabia distingui-las) e, quando o marcador caía sobre cobre, era apagado
+        em silêncio. Agora ele é marcado e, se apagado, redesenhado fora do pad —
+        o footprint nunca fica sem indicação de polaridade quando há espaço.
         """
-        import logging
         from KicadModTree import Footprint, Pad
         from footprint_helpers import draw_pin1_marker, recortar_silk_sobre_pads
-        avisos = []
+        fp = Footprint('T')
+        fp.append(Pad(number='1', type=Pad.TYPE_SMT, shape=Pad.SHAPE_RECT,
+                      at=[0, 0], size=[3.0, 3.0], layers=['F.Cu', 'F.Mask']))
+        draw_pin1_marker(fp, 0, 0, style='dot', size=0.3)  # todo dentro do pad
+        recortar_silk_sobre_pads(fp)
 
-        class _H(logging.Handler):
-            def emit(self, r):
-                avisos.append(r.getMessage())
-        import footprint_helpers as fh
-        h = _H()
-        fh.log.addHandler(h)
-        fh.log.setLevel(logging.WARNING)
-        try:
-            fp = Footprint('T')
-            fp.append(Pad(number='1', type=Pad.TYPE_SMT, shape=Pad.SHAPE_RECT,
-                          at=[0, 0], size=[3.0, 3.0], layers=['F.Cu', 'F.Mask']))
-            draw_pin1_marker(fp, 0, 0, style='dot', size=0.3)
-            _, removidas, perdidos = recortar_silk_sobre_pads(fp)
-            assert perdidos >= 1, "marcador dentro do pad deveria contar como perdido"
-            assert any('marcador' in a.lower() for a in avisos), \
-                "o aviso de marcador removido não disparou"
-        finally:
-            fh.log.removeHandler(h)
-    teste("recorte de silk avisa quando apaga o marcador de pino 1",
-          t_marcador_pino1_aviso_ativo)
+        # sobrou marcador (reposicionado), e nenhum traço dele cai sobre o pad
+        marcador = [no for no in fp.getAllChilds()
+                    if type(no).__name__ == 'Line'
+                    and getattr(no, '_marcador_pino1', False)]
+        assert marcador, "marcador de pino 1 sumiu sem ser reposicionado"
+        for ln in marcador:
+            for p in (ln.start_pos, ln.end_pos):
+                assert not (-1.5 < p.x < 1.5 and -1.5 < p.y < 1.5), \
+                    "o marcador reposicionado ainda cai sobre o pad"
+    teste("recorte de silk reposiciona o marcador de pino 1 (regressão)",
+          t_marcador_pino1_reposicionado)
 
     def t_folga_nominal_nao_falsa_alarma():
         """Vão de exatamente 0,2 mm não pode virar aviso '< 0.20mm'.
