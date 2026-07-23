@@ -19,6 +19,20 @@
 # Conversão de unidades VALIDADA contra o NE555 (C7593, SOIC-8): as coordenadas
 # do EasyEDA são em 10 mil; mm = (valor - origem) * 10 * 0.0254. O Y é negado
 # para seguir a convenção do KiCad (pino 1 no topo).
+#
+# AVISOS (leia antes de depender disto):
+#   - CÓDIGO x DADOS: este módulo é código original, sob a licença do projeto
+#     (GPL-3.0) — não deriva do easyeda2kicad (AGPL-3.0). Mas os DADOS que ele
+#     baixa (a geometria de cada componente) pertencem ao EasyEDA/LCSC e aos
+#     fabricantes, não a nós. Gerar footprints a partir deles é prática comum
+#     (cotas de datasheet não são obra criativa), mas o resultado NÃO é "livre
+#     de qualquer direito" — confira a política do LCSC/EasyEDA antes de
+#     redistribuir em massa ou comercialmente. Isto não é aconselhamento
+#     jurídico.
+#   - API NÃO-OFICIAL: usamos o endpoint interno easyeda.com/api/..., não
+#     documentado para uso externo. Pode mudar, pode bloquear (responde 403 sem
+#     cabeçalho de navegador) e está sujeito aos Termos de Serviço do EasyEDA.
+#     Sem garantia de continuidade nem de autorização explícita.
 # =============================================================================
 
 import json

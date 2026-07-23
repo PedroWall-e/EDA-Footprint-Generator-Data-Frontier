@@ -96,6 +96,9 @@ python cli.py --json gerar modulos_config/NE555_DIP8.yaml -o saida/
 > [!WARNING]
 > Don't run `pip install -r requirements.txt` directly — `cadquery` and `CQ-Editor` are installed from the local sources in `libs/` (the setup script handles this). The 3D/STEP output needs CadQuery; footprint + symbol generation work without it.
 
+> [!NOTE]
+> **About `importar` (LCSC/EasyEDA).** The importer is original code under this project's license (GPL-3.0) — it does **not** derive from `easyeda2kicad` (AGPL-3.0). It reads component **data** (pins and pads) from EasyEDA's **unofficial** internal API (`easyeda.com/api/...`), which is undocumented, may change or rate-limit, and is subject to EasyEDA's Terms of Service. The downloaded geometry belongs to EasyEDA/LCSC and the part manufacturers, **not** to this project; generating footprints from datasheet dimensions is common practice, but the result is not "free of all rights" — check the LCSC/EasyEDA policy before redistributing imported parts at scale or commercially. Not legal advice.
+
 ### Desktop GUI
 
 ```bash
